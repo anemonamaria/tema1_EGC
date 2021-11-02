@@ -36,15 +36,33 @@ void Tema1::Init()
 
     logicSpace.x = 0;       // logic x
     logicSpace.y = 0;       // logic y
-    logicSpace.width = 4;   // logic width
-    logicSpace.height = 4;  // logic height
+    logicSpace.width = 2;   // logic width
+    logicSpace.height = 2;  // logic height
 
     glm::vec3 corner = glm::vec3(0.001, 0.001, 0);
-    length = 0.99f;
-    width = 1.50f;
+    length = 0.19f;
+    width = 0.30f;
 
-    Mesh* square1 = object2D::CreateSquare1("square1", corner, length, width, glm::vec3(0.5, 0, 0), true);
-    AddMeshToList(square1);
+    Mesh* obstacle1 = object2D::CreateSquare1("obstacle1", glm::vec3(0.2,0.2,0), 0.19f, 0.30f, glm::vec3(0.5, 0.5, 0), true);
+    AddMeshToList(obstacle1);
+
+    Mesh* obstacle2 = object2D::CreateSquare1("obstacle2", glm::vec3(0.1, 0.9, 0), 0.4f, 0.25f, glm::vec3(0.5, 0.5, 0), true);
+    AddMeshToList(obstacle2);
+
+    Mesh* obstacle3 = object2D::CreateSquare1("obstacle3", glm::vec3(0.4, 0.6, 0), 0.3f, 0.1f, glm::vec3(0.5, 0.5, 0), true);
+    AddMeshToList(obstacle3);
+
+    Mesh* obstacle4 = object2D::CreateSquare1("obstacle4", glm::vec3(1, 1, 0), 0.2f, 0.4f, glm::vec3(0.5, 0.5, 0), true);
+    AddMeshToList(obstacle4);
+
+    Mesh* obstacle5 = object2D::CreateSquare1("obstacle5", glm::vec3(0.8, 0.7, 0), 0.7f, 0.2f, glm::vec3(0.5, 0.5, 0), true);
+    AddMeshToList(obstacle5);
+
+    Mesh* projectile = object2D::CreateSquare1("projectile", glm::vec3(0.7, 0.7, 0), 0.03f, 0.06f, glm::vec3(0, 0, 0), true);
+    AddMeshToList(projectile);
+
+    Mesh* enemy1 = object2D::CreateEnemy("enemy1", glm::vec3(0.3, 0.3, 0), glm::vec3(1, 1, 1), glm::vec3(1,0,0));
+    AddMeshToList(enemy1);
 }
 
 
@@ -115,7 +133,7 @@ void Tema1::Update(float deltaTimeSeconds)
     glm::ivec2 resolution = window->GetResolution();
 
     // Sets the screen area where to draw
-    viewSpace = ViewportSpace(0, 0, resolution.x * 2, resolution.y * 2);
+    viewSpace = ViewportSpace(0, 0, 1700, 900);
     SetViewportArea(viewSpace, glm::vec3(0.63, 0.54, 1.51), true);
 
     // Compute the 2D visualization matrix
@@ -124,8 +142,8 @@ void Tema1::Update(float deltaTimeSeconds)
 
     DrawScene(visMatrix);
 
-    // TODO OK???? cum verific daca am margine? cum ma misc in asta?
-    viewSpace = ViewportSpace(0, 0, resolution.x * 2 - 1, resolution.y * 2 - 1);
+    // TODO OK???? 
+    viewSpace = ViewportSpace(20, 20, 1660, 860);  // dimensiunile in care ma pot misca
     SetViewportArea(viewSpace, glm::vec3(0.63, 0.54, 0.51), true);
 
     // Compute the 2D visualization matrix
@@ -144,19 +162,25 @@ void Tema1::FrameEnd()
 void Tema1::DrawScene(glm::mat3 visMatrix)
 {
     modelMatrix = visMatrix * transform2D::Translate(0, 0);
-    RenderMesh2D(meshes["square1"], shaders["VertexColor"], modelMatrix);
-/*
-    modelMatrix = visMatrix * transform2D::Translate(3, 0);
-    RenderMesh2D(meshes["square1"], shaders["VertexColor"], modelMatrix);
+    RenderMesh2D(meshes["obstacle1"], shaders["VertexColor"], modelMatrix); // TODO de aici eroare ciudata de compilare
 
-    modelMatrix = visMatrix * transform2D::Translate(1.5, 1.5);
-    RenderMesh2D(meshes["square1"], shaders["VertexColor"], modelMatrix);
+    modelMatrix = visMatrix * transform2D::Translate(0, 0);
+    RenderMesh2D(meshes["obstacle2"], shaders["VertexColor"], modelMatrix);
 
-    modelMatrix = visMatrix * transform2D::Translate(0, 3);
-    RenderMesh2D(meshes["square1"], shaders["VertexColor"], modelMatrix);
+    modelMatrix = visMatrix * transform2D::Translate(0, 0);
+    RenderMesh2D(meshes["obstacle3"], shaders["VertexColor"], modelMatrix);
 
-    modelMatrix = visMatrix * transform2D::Translate(3, 3);
-    RenderMesh2D(meshes["square1"], shaders["VertexColor"], modelMatrix);*/
+    modelMatrix = visMatrix * transform2D::Translate(0, 0);
+    RenderMesh2D(meshes["obstacle4"], shaders["VertexColor"], modelMatrix);
+
+    modelMatrix = visMatrix * transform2D::Translate(0, 0);
+    RenderMesh2D(meshes["obstacle5"], shaders["VertexColor"], modelMatrix);
+
+    modelMatrix = visMatrix * transform2D::Translate(0, 0);
+    RenderMesh2D(meshes["projectile"], shaders["VertexColor"], modelMatrix);
+    
+    modelMatrix = visMatrix * transform2D::Translate(0, 0) * transform2D::Scale(0.2, 0.2);
+    RenderMesh2D(meshes["enemy1"], shaders["VertexColor"], modelMatrix);
 }
 
 
@@ -170,16 +194,16 @@ void Tema1::OnInputUpdate(float deltaTime, int mods)
 {
     // TODO(student): Move the logic window with W, A, S, D (up, left, down, right)
     if (window->KeyHold(GLFW_KEY_W)) {
-        logicSpace.y += deltaTime;
-    }
-    if (window->KeyHold(GLFW_KEY_A)) {
-        logicSpace.x -= deltaTime;
-    }
-    if (window->KeyHold(GLFW_KEY_S)) {
         logicSpace.y -= deltaTime;
     }
-    if (window->KeyHold(GLFW_KEY_D)) {
+    if (window->KeyHold(GLFW_KEY_A)) {
         logicSpace.x += deltaTime;
+    }
+    if (window->KeyHold(GLFW_KEY_S)) {
+        logicSpace.y += deltaTime;
+    }
+    if (window->KeyHold(GLFW_KEY_D)) {
+        logicSpace.x -= deltaTime;
     }
     // TODO(student): Zoom in and zoom out logic window with Z and X
     if (window->KeyHold(GLFW_KEY_Z)) {
