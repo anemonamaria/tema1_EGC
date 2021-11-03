@@ -11,8 +11,11 @@ namespace object2D
 
     // Create square with given bottom left corner, length and color
     Mesh* CreateSquare1(const std::string& name, glm::vec3 leftBottomCorner, float length, float width, glm::vec3 color, bool fill = false);
-    Mesh* CreatePlayer(const std::string name, glm::vec3 leftBottomCorner);
+    //Mesh* CreatePlayer(const std::string name, glm::vec3 leftBottomCorner, glm::vec3 color);
     Mesh* CreateEnemy(const std::string& name, glm::vec3 leftBottomCorner, glm::vec3 color, glm::vec3 color_eye);
-   
+    //void DrawCircle(float cx, float cy, float r, int num_segments);
+    Mesh* CreateBalloon(const std::string& name, glm::vec3 centre, float lengthX, glm::vec3 color);
+    Mesh* CreateDog(const std::string& name, glm::vec3 color = glm::vec3(1, 0.5f, 0));
+
 
 }

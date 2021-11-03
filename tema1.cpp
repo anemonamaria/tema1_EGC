@@ -63,6 +63,12 @@ void Tema1::Init()
 
     Mesh* enemy1 = object2D::CreateEnemy("enemy1", glm::vec3(0.3, 0.3, 0), glm::vec3(1, 1, 1), glm::vec3(1,0,0));
     AddMeshToList(enemy1);
+
+    Mesh* balloon = object2D::CreateBalloon("balloon", glm::vec3(0.4, 0.4, 0), 2, glm::vec3(0.7, 0.3, 0));
+    AddMeshToList(balloon);
+
+    Mesh* dog = object2D::CreateDog("dog", glm::vec3(0.3f, 0.3f, 0.3f));
+    AddMeshToList(dog);
 }
 
 
@@ -181,6 +187,12 @@ void Tema1::DrawScene(glm::mat3 visMatrix)
     
     modelMatrix = visMatrix * transform2D::Translate(0, 0) * transform2D::Scale(0.2, 0.2);
     RenderMesh2D(meshes["enemy1"], shaders["VertexColor"], modelMatrix);
+
+    modelMatrix = visMatrix * transform2D::Translate(0.5, 0.5) * transform2D::Scale(0.02, 0.03);
+    RenderMesh2D(meshes["balloon"], shaders["VertexColor"], modelMatrix);
+
+    modelMatrix = visMatrix * transform2D::Translate(0.5, 0.5) * transform2D::Scale(0.02, 0.03);
+    RenderMesh2D(meshes["dog"], shaders["VertexColor"], modelMatrix);
 }
 
 
