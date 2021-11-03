@@ -64,11 +64,11 @@ void Tema1::Init()
     Mesh* enemy1 = object2D::CreateEnemy("enemy1", glm::vec3(0.3, 0.3, 0), glm::vec3(1, 1, 1), glm::vec3(1,0,0));
     AddMeshToList(enemy1);
 
-    Mesh* balloon = object2D::CreateBalloon("balloon", glm::vec3(0.4, 0.4, 0), 2, glm::vec3(0.7, 0.3, 0));
-    AddMeshToList(balloon);
+    Mesh* circle = object2D::CreateCircle("circle", glm::vec3(0.4, 0.4, 0), 2, glm::vec3(0.7, 0.3, 0));
+    AddMeshToList(circle);
 
-    Mesh* dog = object2D::CreateDog("dog", glm::vec3(0.3f, 0.3f, 0.3f));
-    AddMeshToList(dog);
+    Mesh* player = object2D::CreatePlayer("player");
+    AddMeshToList(player);
 }
 
 
@@ -189,10 +189,10 @@ void Tema1::DrawScene(glm::mat3 visMatrix)
     RenderMesh2D(meshes["enemy1"], shaders["VertexColor"], modelMatrix);
 
     modelMatrix = visMatrix * transform2D::Translate(0.5, 0.5) * transform2D::Scale(0.02, 0.03);
-    RenderMesh2D(meshes["balloon"], shaders["VertexColor"], modelMatrix);
+    RenderMesh2D(meshes["circle"], shaders["VertexColor"], modelMatrix);
 
-    modelMatrix = visMatrix * transform2D::Translate(0.5, 0.5) * transform2D::Scale(0.02, 0.03);
-    RenderMesh2D(meshes["dog"], shaders["VertexColor"], modelMatrix);
+    modelMatrix = visMatrix * transform2D::Translate(0.5, 0.7) * transform2D::Scale(0.05, 0.06);
+    RenderMesh2D(meshes["player"], shaders["VertexColor"], modelMatrix);
 }
 
 
