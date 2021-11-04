@@ -28,7 +28,10 @@ Tema1::~Tema1()
 
 void Tema1::Init()
 {
+    glm::ivec2 resolution = window->GetResolution();
+
     auto camera = GetSceneCamera();
+    camera->SetOrthographic(0, (float)resolution.x, 0, (float)resolution.y, 0.01f, 400);
     camera->SetPosition(glm::vec3(0, 0, 50));
     camera->SetRotation(glm::vec3(0, 0, 0));
     camera->Update();
@@ -36,14 +39,13 @@ void Tema1::Init()
 
     logicSpace.x = 0;       // logic x
     logicSpace.y = 0;       // logic y
-    logicSpace.width = 2;   // logic width
-    logicSpace.height = 2;  // logic height
+    logicSpace.width = 4;   // logic width
+    logicSpace.height = 4;  // logic height
 
     glm::vec3 corner = glm::vec3(0.001, 0.001, 0);
-    length = 0.19f;
-    width = 0.30f;
-
-    Mesh* obstacle1 = object2D::CreateSquare1("obstacle1", glm::vec3(0.2,0.2,0), 0.19f, 0.30f, glm::vec3(0.5, 0.5, 0), true);
+    length = 0.99f;
+    
+    Mesh* obstacle1 = object2D::CreateSquare1("obstacle1", glm::vec3(0.2, 0.2, 0), 0.19f, 0.30f, glm::vec3(0.5, 0.5, 0), true);
     AddMeshToList(obstacle1);
 
     Mesh* obstacle2 = object2D::CreateSquare1("obstacle2", glm::vec3(0.1, 0.9, 0), 0.4f, 0.25f, glm::vec3(0.5, 0.5, 0), true);
@@ -61,12 +63,13 @@ void Tema1::Init()
     Mesh* projectile = object2D::CreateSquare1("projectile", glm::vec3(0.7, 0.7, 0), 0.03f, 0.06f, glm::vec3(0, 0, 0), true);
     AddMeshToList(projectile);
 
-    Mesh* enemy1 = object2D::CreateEnemy("enemy1", glm::vec3(0.3, 0.3, 0), glm::vec3(1, 1, 1), glm::vec3(1,0,0));
+    Mesh* enemy1 = object2D::CreateEnemy("enemy1", glm::vec3(0.3, 0.3, 0), glm::vec3(1, 1, 1), glm::vec3(1, 0, 0));
     AddMeshToList(enemy1);
 
     Mesh* circle = object2D::CreateCircle("circle", glm::vec3(0.4, 0.4, 0), 2, glm::vec3(0.7, 0.3, 0));
     AddMeshToList(circle);
 
+    player.angle = 0;
     Mesh* player = object2D::CreatePlayer("player");
     AddMeshToList(player);
 }
@@ -119,8 +122,7 @@ void Tema1::SetViewportArea(const ViewportSpace& viewSpace, glm::vec3 colorColor
     glClearColor(colorColor.r, colorColor.g, colorColor.b, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
-    glBegin(GL_LINE_LOOP);   // TODO border ???
-      
+
     GetSceneCamera()->SetOrthographic((float)viewSpace.x, (float)(viewSpace.x + viewSpace.width), (float)viewSpace.y, (float)(viewSpace.y + viewSpace.height), 0.1f, 400);
     GetSceneCamera()->Update();
 }
@@ -139,24 +141,24 @@ void Tema1::Update(float deltaTimeSeconds)
     glm::ivec2 resolution = window->GetResolution();
 
     // Sets the screen area where to draw
-    viewSpace = ViewportSpace(0, 0, 1700, 900);
+    viewSpace = ViewportSpace(0, 0, resolution.x, resolution.y);
     SetViewportArea(viewSpace, glm::vec3(0.63, 0.54, 1.51), true);
 
     // Compute the 2D visualization matrix
-    visMatrix = glm::mat3(1);
-    visMatrix *= VisualizationTransf2D(logicSpace, viewSpace);
+    visMatrix_outside = glm::mat3(1);
+    visMatrix_outside *= VisualizationTransf2D(logicSpace, viewSpace);
 
-    DrawScene(visMatrix);
+    DrawScene(visMatrix_outside);
 
     // TODO OK???? 
-    viewSpace = ViewportSpace(20, 20, 1660, 860);  // dimensiunile in care ma pot misca
+    viewSpace = ViewportSpace(20, 20, resolution.x - 40, resolution.y - 40);  // dimensiunile in care ma pot misca
     SetViewportArea(viewSpace, glm::vec3(0.63, 0.54, 0.51), true);
 
     // Compute the 2D visualization matrix
-    visMatrix = glm::mat3(1);
-    visMatrix *= VisualizationTransf2D(logicSpace, viewSpace);
+    visMatrix_inside = glm::mat3(1);
+    visMatrix_inside *= VisualizationTransf2D(logicSpace, viewSpace);
 
-    DrawScene(visMatrix);
+    DrawScene(visMatrix_inside);
 }
 
 
@@ -167,31 +169,34 @@ void Tema1::FrameEnd()
 
 void Tema1::DrawScene(glm::mat3 visMatrix)
 {
-    modelMatrix = visMatrix * transform2D::Translate(0, 0);
+    modelMatrix = visMatrix_inside * transform2D::Translate(0, 0);
     RenderMesh2D(meshes["obstacle1"], shaders["VertexColor"], modelMatrix); // TODO de aici eroare ciudata de compilare
 
-    modelMatrix = visMatrix * transform2D::Translate(0, 0);
+    modelMatrix = visMatrix_inside * transform2D::Translate(0, 0);
     RenderMesh2D(meshes["obstacle2"], shaders["VertexColor"], modelMatrix);
 
-    modelMatrix = visMatrix * transform2D::Translate(0, 0);
+    modelMatrix = visMatrix_inside * transform2D::Translate(0, 0);
     RenderMesh2D(meshes["obstacle3"], shaders["VertexColor"], modelMatrix);
 
-    modelMatrix = visMatrix * transform2D::Translate(0, 0);
+    modelMatrix = visMatrix_inside * transform2D::Translate(0, 0);
     RenderMesh2D(meshes["obstacle4"], shaders["VertexColor"], modelMatrix);
 
-    modelMatrix = visMatrix * transform2D::Translate(0, 0);
+    modelMatrix = visMatrix_inside * transform2D::Translate(0, 0);
     RenderMesh2D(meshes["obstacle5"], shaders["VertexColor"], modelMatrix);
 
-    modelMatrix = visMatrix * transform2D::Translate(0, 0);
+    modelMatrix = visMatrix_inside * transform2D::Translate(0, 0);
     RenderMesh2D(meshes["projectile"], shaders["VertexColor"], modelMatrix);
-    
-    modelMatrix = visMatrix * transform2D::Translate(0, 0) * transform2D::Scale(0.2, 0.2);
+
+    modelMatrix = visMatrix_inside * transform2D::Translate(0, 0);
+    RenderMesh2D(meshes["square1"], shaders["VertexColor"], modelMatrix);
+
+    modelMatrix = visMatrix_inside * transform2D::Translate(0, 0) * transform2D::Scale(0.2, 0.2);
     RenderMesh2D(meshes["enemy1"], shaders["VertexColor"], modelMatrix);
 
-    modelMatrix = visMatrix * transform2D::Translate(0.5, 0.5) * transform2D::Scale(0.02, 0.03);
+    modelMatrix = visMatrix_inside * transform2D::Translate(0.5, 0.5) * transform2D::Scale(0.02, 0.03);
     RenderMesh2D(meshes["circle"], shaders["VertexColor"], modelMatrix);
 
-    modelMatrix = visMatrix * transform2D::Translate(0.5, 0.7) * transform2D::Scale(0.05, 0.06);
+    modelMatrix = visMatrix_inside * transform2D::Translate(0.5, 0.7) * transform2D::Scale(0.05, 0.06);
     RenderMesh2D(meshes["player"], shaders["VertexColor"], modelMatrix);
 }
 

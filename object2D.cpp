@@ -1,19 +1,13 @@
 #include "object2D.h"
 
 #include <vector>
-#include <math.h>
 
 #include "core/engine.h"
 #include "utils/gl_utils.h"
 
 
-Mesh* object2D::CreateSquare1(
-    const std::string& name,
-    glm::vec3 leftBottomCorner,
-    float length,
-	float width,
-    glm::vec3 color,
-    bool fill)
+Mesh* object2D::CreateSquare1(const std::string& name, glm::vec3 leftBottomCorner, float length,
+	float width, glm::vec3 color, bool fill)
 {
     glm::vec3 corner = leftBottomCorner;
 
@@ -40,6 +34,7 @@ Mesh* object2D::CreateSquare1(
     square->InitFromData(vertices, indices);
     return square;
 }
+
 
 Mesh* object2D::CreateEnemy(const std::string& name, glm::vec3 leftBottomCorner,
 	glm::vec3 color, glm::vec3 color_eye) {
@@ -89,8 +84,6 @@ Mesh* object2D::CreateEnemy(const std::string& name, glm::vec3 leftBottomCorner,
 
 }
 
-
-
 Mesh* object2D::CreateCircle(const std::string& name, glm::vec3 centre, float lengthX, glm::vec3 color) {
 	float a = lengthX;
 
@@ -116,7 +109,6 @@ Mesh* object2D::CreateCircle(const std::string& name, glm::vec3 centre, float le
 	balloon->InitFromData(vertices, indices);
 	return balloon;
 }
-
 
 Mesh* object2D::CreatePlayer(const std::string& name) {
 	glm::vec3 black = glm::vec3(0, 0, 0);
@@ -217,4 +209,4 @@ Mesh* object2D::CreatePlayer(const std::string& name) {
 	Mesh* player = new Mesh(name);
 	player->InitFromData(vertices, indices);
 	return player;
-}
+} 
