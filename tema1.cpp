@@ -44,6 +44,11 @@ void Tema1::Init()
 
     glm::vec3 corner = glm::vec3(0.001, 0.001, 0);
     length = 0.99f;
+
+    player.angle = 0;
+    player.x = 0;
+    player.y = 0;
+    player.radius = 40;
     
     Mesh* obstacle1 = object2D::CreateSquare1("obstacle1", glm::vec3(0.2, 0.2, 0), 0.19f, 0.30f, glm::vec3(0.5, 0.5, 0), true);
     AddMeshToList(obstacle1);
@@ -196,7 +201,8 @@ void Tema1::DrawScene(glm::mat3 visMatrix)
     modelMatrix = visMatrix_inside * transform2D::Translate(0.5, 0.5) * transform2D::Scale(0.02, 0.03);
     RenderMesh2D(meshes["circle"], shaders["VertexColor"], modelMatrix);
 
-    modelMatrix = visMatrix_inside * transform2D::Translate(0.5, 0.7) * transform2D::Scale(0.05, 0.06);
+    modelMatrix = visMatrix_inside * transform2D::Translate(player.x, player.y) * transform2D::Scale(0.05, 0.06)
+        * transform2D::Rotate(player.angle);
     RenderMesh2D(meshes["player"], shaders["VertexColor"], modelMatrix);
 }
 
@@ -211,16 +217,16 @@ void Tema1::OnInputUpdate(float deltaTime, int mods)
 {
     // TODO(student): Move the logic window with W, A, S, D (up, left, down, right)
     if (window->KeyHold(GLFW_KEY_W)) {
-        logicSpace.y -= deltaTime;
+        player.y += deltaTime;
     }
     if (window->KeyHold(GLFW_KEY_A)) {
-        logicSpace.x += deltaTime;
+        player.x -= deltaTime;
     }
     if (window->KeyHold(GLFW_KEY_S)) {
-        logicSpace.y += deltaTime;
+        player.y -= deltaTime;
     }
     if (window->KeyHold(GLFW_KEY_D)) {
-        logicSpace.x -= deltaTime;
+        player.x += deltaTime;
     }
     // TODO(student): Zoom in and zoom out logic window with Z and X
     if (window->KeyHold(GLFW_KEY_Z)) {
@@ -244,10 +250,22 @@ void Tema1::OnKeyRelease(int key, int mods)
     // Add key release event
 }
 
+void Tema1::setPlayerAngle() {
+    glm::ivec2 resolution = window->GetResolution();
+    float dy = resolution.y - player.y - cursorY;
+    float dx = cursorX - player.x;
+    player.angle = atan(dy / dx);
+    
+}
 
 void Tema1::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
 {
     // Add mouse move event
+    glm::ivec2 resolution = window->GetResolution();
+    // add mouse move event
+    cursorX = mouseX - deltaX;
+    cursorY = mouseY - deltaY;
+    setPlayerAngle();
 }
 
 

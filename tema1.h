@@ -2,7 +2,19 @@
 
 #include "components/simple_scene.h"
 
+/*
+    - de rezolvat TODO-URILE
+    - de aranjat drectia jucatorului sa fie buna, sa se schimbe din centrul ei, nu pe o raza
+    - de facut coliziunile cu obstacolele
+    - de facut limitele jocului
+    - de facut viewport-ul
+    - de aruncat cu proiectile
+    - de facut inamicii sa vina
+    - de retinut scorul
+    - de facut healthbarul
+    - de pus obstacolele mai bine in scena
 
+*/
 namespace m1
 {
     class Tema1 : public gfxc::SimpleScene
@@ -50,6 +62,7 @@ namespace m1
         void OnMouseBtnPress(int mouseX, int mouseY, int button, int mods) override;
         void OnMouseBtnRelease(int mouseX, int mouseY, int button, int mods) override;
         void OnMouseScroll(int mouseX, int mouseY, int offsetX, int offsetY) override;
+        void Tema1::setPlayerAngle();
 
         // Sets the logic space and view space
         // logicSpace: { x, y, width, height }
@@ -64,6 +77,8 @@ namespace m1
         ViewportSpace viewSpace;
         LogicSpace logicSpace;
         glm::mat3 modelMatrix, visMatrix_outside, visMatrix_inside;
+
+        int cursorX, cursorY;
 
         struct player_t {
             int speed;
