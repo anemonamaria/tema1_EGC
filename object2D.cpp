@@ -54,15 +54,6 @@ Mesh* object2D::CreateEnemy(const std::string& name, glm::vec3 leftBottomCorner,
 		VertexFormat(corner + glm::vec3(0.45, 0.6, 0), color),
 		VertexFormat(corner + glm::vec3(0.5, 0, 0), color),
 		VertexFormat(corner + glm::vec3(0.5, 0.5, 0), color),
-		/*VertexFormat(corner + glm::vec3(0.08, 0.53, 0), color_eye),
-		VertexFormat(corner + glm::vec3(0.11, 0.53, 0), color_eye),
-		VertexFormat(corner + glm::vec3(0.11, 0.56, 0), color_eye),
-		VertexFormat(corner + glm::vec3(0.08, 0.56, 0), color_eye),
-		VertexFormat(corner + glm::vec3(0.38, 0.53, 0), color_eye),
-		VertexFormat(corner + glm::vec3(0.41, 0.53, 0), color_eye),
-		VertexFormat(corner + glm::vec3(0.41, 0.56, 0), color_eye),
-		VertexFormat(corner + glm::vec3(0.38, 0.56, 0), color_eye),
-		*/
 	};
 
 	Mesh* enemy = new Mesh(name);
@@ -114,28 +105,22 @@ Mesh* object2D::CreatePlayer(const std::string& name) {
 	glm::vec3 black = glm::vec3(0, 0, 0);
 
 	std::vector<VertexFormat> vertices = {
-		
-		VertexFormat(glm::vec3(3.5f, 6.5f,0), black), // index = 24
-
+		VertexFormat(glm::vec3(0.0f, 0.0f,0), black), 
 	};
 
 	for (float i = 0; i < 2 * M_PI; i += M_PI / 6) // 0-13
-		vertices.push_back(VertexFormat(glm::vec3(3.5f + 1.0f * cos(i), 6.5f + 1.0f * sin(i), 0), black));
+		vertices.push_back(VertexFormat(glm::vec3(0.0f + 1.0f * cos(i), 0.0f + 1.0f * sin(i), 0), black));
 
 	// the left ear
-	vertices.push_back(VertexFormat(glm::vec3(2.5f, 7.5f, 0), black));
+	vertices.push_back(VertexFormat(glm::vec3(-1.0f, 1.0f, 0), black));
 	for (float i = 0; i < 2 * M_PI; i += M_PI / 6) 
-		vertices.push_back(VertexFormat(glm::vec3(2.5f + 0.5f * cos(i), 7.5f + 0.5f * sin(i), 0), black));
+		vertices.push_back(VertexFormat(glm::vec3(-1.0f + 0.5f * cos(i), 1.0f + 0.5f * sin(i), 0), black));
 	
 	//the right ear
-	vertices.push_back(VertexFormat(glm::vec3(4.5f, 7.5f, 0), black));
+	vertices.push_back(VertexFormat(glm::vec3(1.0f, 1.0f, 0), black));
 	for (float i = 0; i < 2 * M_PI; i += M_PI / 6) 
-		vertices.push_back(VertexFormat(glm::vec3(4.5f + 0.5f * cos(i), 7.5f + 0.5f * sin(i), 0), black));
+		vertices.push_back(VertexFormat(glm::vec3(1.0f + 0.5f * cos(i), 1.0f + 0.5f * sin(i), 0), black));
 
-	//mouth
-	vertices.push_back(VertexFormat(glm::vec3(3.5f, 6.0f, 0), glm::vec3(0.5, 0.5, 0.5)));
-	for (float i = 0; i < 2 * M_PI; i += M_PI / 6) // TODO de ce nu coloreaza aici?
-		vertices.push_back(VertexFormat(glm::vec3(3.5f + 0.5f * cos(i), 6.0f + 0.5f * sin(i), 0), glm::vec3(0.5,0.5,0.5)));
 
 	std::vector<unsigned int> indices = {
 		// the body 
@@ -180,30 +165,6 @@ Mesh* object2D::CreatePlayer(const std::string& name) {
 		28, 39, 40,
 		28, 40, 41,
 
-		// mouth
-		42, 43, 44,
-		42, 44, 45,
-		42, 45, 46,
-		42, 46, 47,
-		42, 47, 48,
-		42, 48, 49,
-		42, 49, 50,
-		42, 50, 51,
-		42, 51, 52,
-		42, 52, 53,
-		42, 53, 54,
-		42, 54, 55,
-		/*21, 22, 23,
-		18, 19, 20,
-		0, 1, 2,
-		0, 2, 3,
-		4, 5, 6,
-		4, 6, 7,
-		4, 7, 8,
-		4, 8, 11,
-		9, 10, 11,
-		12, 13, 14,
-		15, 16, 17,*/
 	};
 
 	Mesh* player = new Mesh(name);

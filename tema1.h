@@ -6,8 +6,7 @@
     - de rezolvat TODO-URILE
     - de aranjat drectia jucatorului sa fie buna, sa se schimbe din centrul ei, nu pe o raza
     - de facut coliziunile cu obstacolele
-    - de facut limitele jocului
-    - de facut viewport-ul
+    - de facut viewport-ul   -din logicspace
     - de aruncat cu proiectile
     - de facut inamicii sa vina
     - de retinut scorul
@@ -82,7 +81,7 @@ namespace m1
 
         struct player_t {
             int speed;
-            float radius, x, y, angle;
+            float x, y, angle;
         } player;
     };
 }   // namespace m1

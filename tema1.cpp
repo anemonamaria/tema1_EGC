@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <iostream>
+#include <math.h>
 
 #include "lab_m1/Tema1/transform2D.h"
 #include "lab_m1/Tema1/object2D.h"
@@ -48,7 +49,7 @@ void Tema1::Init()
     player.angle = 0;
     player.x = 0;
     player.y = 0;
-    player.radius = 40;
+   // player.radius = 40;
     
     Mesh* obstacle1 = object2D::CreateSquare1("obstacle1", glm::vec3(0.2, 0.2, 0), 0.19f, 0.30f, glm::vec3(0.5, 0.5, 0), true);
     AddMeshToList(obstacle1);
@@ -201,7 +202,7 @@ void Tema1::DrawScene(glm::mat3 visMatrix)
     modelMatrix = visMatrix_inside * transform2D::Translate(0.5, 0.5) * transform2D::Scale(0.02, 0.03);
     RenderMesh2D(meshes["circle"], shaders["VertexColor"], modelMatrix);
 
-    modelMatrix = visMatrix_inside * transform2D::Translate(player.x, player.y) * transform2D::Scale(0.05, 0.06)
+    modelMatrix = visMatrix_inside * transform2D::Translate(player.x + 1.5f, player.y + 0.5f) * transform2D::Scale(0.05, 0.06)
         * transform2D::Rotate(player.angle);
     RenderMesh2D(meshes["player"], shaders["VertexColor"], modelMatrix);
 }
@@ -216,27 +217,45 @@ void Tema1::DrawScene(glm::mat3 visMatrix)
 void Tema1::OnInputUpdate(float deltaTime, int mods)
 {
     // TODO(student): Move the logic window with W, A, S, D (up, left, down, right)
+    glm::ivec2 resolution = window->GetResolution();
+
     if (window->KeyHold(GLFW_KEY_W)) {
-        player.y += deltaTime;
+       
+        if (player.y < 3.5f) { //  dc nu se opreste????
+            player.y += deltaTime;
+
+        }
     }
     if (window->KeyHold(GLFW_KEY_A)) {
-        player.x -= deltaTime;
+        if (player.x > -0.10f) {
+            player.x -= deltaTime;
+        }
     }
     if (window->KeyHold(GLFW_KEY_S)) {
-        player.y -= deltaTime;
+        if (player.y > -0.33f) {
+            player.y -= deltaTime;
+
+        }
     }
     if (window->KeyHold(GLFW_KEY_D)) {
+        if (player.x < 3.75f) {
         player.x += deltaTime;
+        }
     }
-    // TODO(student): Zoom in and zoom out logic window with Z and X
-    if (window->KeyHold(GLFW_KEY_Z)) {
-        logicSpace.height += deltaTime;
-        logicSpace.width += deltaTime;
-    }
-    if (window->KeyHold(GLFW_KEY_X)) {
-        logicSpace.height -= deltaTime;
-        logicSpace.width -= deltaTime;
-    }
+    //// TODO(student): Zoom in and zoom out logic window with Z and X
+    //if (window->KeyHold(GLFW_KEY_Z)) {
+    //    logicSpace.height += deltaTime;
+    //    logicSpace.width += deltaTime;
+    //    logicSpace.x += deltaTime / 2;  // todo nu merg astea, se scaleaza din colt
+    //    logicSpace.y += deltaTime / 2;
+
+    //}
+    //if (window->KeyHold(GLFW_KEY_X)) {
+    //    logicSpace.height -= deltaTime;
+    //    logicSpace.width -= deltaTime;
+    //    logicSpace.x -= deltaTime / 2;
+    //    logicSpace.y -= deltaTime / 2;
+    //}
 }
 
 
@@ -254,7 +273,7 @@ void Tema1::setPlayerAngle() {
     glm::ivec2 resolution = window->GetResolution();
     float dy = resolution.y - player.y - cursorY;
     float dx = cursorX - player.x;
-    player.angle = atan(dy / dx);
+    player.angle = atan(dy / dx) / M_PI * 180.0f;
     
 }
 
