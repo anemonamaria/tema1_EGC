@@ -4,7 +4,7 @@
 
 /*
     - de rezolvat TODO-URILE
-    - de aranjat drectia jucatorului sa fie buna, sa se schimbe din centrul ei, nu pe o raza
+    - de modificat viteza cu care se schimba directia jucatorului
     - de facut coliziunile cu obstacolele
     - de facut viewport-ul   -din logicspace
     - de aruncat cu proiectile
