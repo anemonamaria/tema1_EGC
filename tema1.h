@@ -1,6 +1,7 @@
 #pragma once
 
 #include "components/simple_scene.h"
+#include <vector>
 
 /*
     - de rezolvat TODO-URILE
@@ -63,6 +64,7 @@ namespace m1
         bool CheckCollisionObstacleD(float x, float y);
         bool Tema1::projectileOutOfBounds();
         void Tema1::ResetProjectile();
+        bool Tema1::positionOutOfBonds(float x, float y);
 
         // Sets the logic space and view space
         // logicSpace: { x, y, width, height }
@@ -90,7 +92,16 @@ namespace m1
             bool isCharging, isMoving;
         } projectile;
 
+        struct enemy_t {
+            float width, height;
+            bool onScreen;
+            float x, y, scale, angle;
+            glm::vec3 color;
+        } enemy_aux;
+        std::vector <struct enemy_t> enemy;
+
         float l;
+        int numberOfEnemies;
     };
 }   // namespace m1
 

@@ -89,8 +89,8 @@ void Tema1::Init()
     Mesh* projectile = object2D::CreateSquare1("projectile", glm::vec3(0.0, 0.0, 0), 0.03f, 0.06f, glm::vec3(0, 0, 0), true);
     AddMeshToList(projectile);
 
-    Mesh* enemy1 = object2D::CreateEnemy("enemy1", glm::vec3(0.3, 0.3, 0), glm::vec3(1, 1, 1), glm::vec3(1, 0, 0));
-    AddMeshToList(enemy1);
+    //Mesh* enemy1 = object2D::CreateEnemy("enemy1", glm::vec3(0.3, 0.3, 0), glm::vec3(1, 1, 1), glm::vec3(1, 0, 0));
+    //AddMeshToList(enemy1);
 
     Mesh* circle = object2D::CreateCircle("circle", glm::vec3(0.4, 0.4, 0), 2, glm::vec3(0.7, 0.3, 0));
     AddMeshToList(circle);
@@ -98,6 +98,29 @@ void Tema1::Init()
     player.angle = 0;
     Mesh* player = object2D::CreatePlayer("player");
     AddMeshToList(player);
+
+    srand(time(NULL));
+
+    {
+        numberOfEnemies = 5;
+        Mesh* enemy_new;
+        for (int i = 0; i < numberOfEnemies; ++i) {
+            enemy_aux.width = 0.3f;
+            enemy_aux.height = 0.3f;
+            enemy_aux.x =  i * rand() % 4;
+            enemy_aux.y = enemy_aux.height - rand() % 4 * i;
+            if (i >= numberOfEnemies / 2 + 1)
+                enemy_aux.y -= 0.5;
+
+            enemy_aux.onScreen = true;
+            enemy_aux.color = (i < numberOfEnemies / 2 + 1) ? glm::vec3(1, 0, 0) : glm::vec3(1, 1, 0);
+            enemy_aux.scale = 1;
+            enemy.push_back(enemy_aux);
+
+            enemy_new = object2D::CreateEnemy("enemy" + to_string(i), glm::vec3(enemy_aux.x, enemy_aux.y, 0), enemy_aux.color, glm::vec3(0,0,0));
+            AddMeshToList(enemy_new);
+        }
+    }
 }
 
 
@@ -164,8 +187,11 @@ void Tema1::FrameStart()
 }
 
 bool Tema1::projectileOutOfBounds() {
-    glm::ivec2 resolution = window->GetResolution();
     return (projectile.x > 2 || projectile.y < -2 || projectile.y > 2 || projectile.x < -2);
+}
+
+bool Tema1::positionOutOfBonds(float x, float y) {
+    return (x > 4 || y < 0  || y > 4 || x < 0);
 }
 
 void Tema1::ResetProjectile() {
@@ -201,6 +227,7 @@ void Tema1::Update(float deltaTimeSeconds)
     logicSpace.y = player.y - 500;*/
     visMatrix_inside *= VisualizationTransf2D(logicSpace, viewSpace);
     
+    //projectile movement
     {
         if (projectile.isMoving) {
             projectile.x += projectile.power * deltaTimeSeconds * 2.f * cos(projectile.angle);
@@ -209,6 +236,54 @@ void Tema1::Update(float deltaTimeSeconds)
         if (projectileOutOfBounds())
             ResetProjectile();
     }
+    srand(time(NULL));
+
+    // Enemy Movement
+    {
+        for (int i = 0; i < numberOfEnemies; ++i) {
+            /*if (window->KeyHold(GLFW_KEY_D) || window->KeyHold(GLFW_KEY_W)
+                || window->KeyHold(GLFW_KEY_S) || window->KeyHold(GLFW_KEY_A)) {
+                enemy[i].y += deltaTimeSeconds * 0.35f * player.y;
+                enemy[i].x += deltaTimeSeconds * 0.35f * player.x;
+            }
+            else {*/
+            if (player.y + 2.0f > enemy[i].y) {
+                do {
+                    enemy[i].y += deltaTimeSeconds * 0.3f;
+                } while (enemy[i].y == player.y + 2.0f);
+            }
+            else {
+                do {
+                    enemy[i].y -= deltaTimeSeconds * 0.3f;
+                } while (enemy[i].y == player.y + 2.0f);
+            }
+            if (player.x + 2.0f > enemy[i].x) {
+                do {
+                    enemy[i].x += deltaTimeSeconds * 0.3f;
+                } while (enemy[i].x == player.y + 2.0f);
+            }
+            else {
+                do {
+                    enemy[i].x -= deltaTimeSeconds * 0.3f;
+                } while (enemy[i].x == player.x + 2.0f);
+            }
+                
+                /*do{
+                    enemy[i].x += deltaTimeSeconds * 0.2f;
+                } while (enemy[i].x == player.x);*/
+                
+                
+            //}
+             
+            if (positionOutOfBonds(enemy[i].x, enemy[i].y)) {
+                enemy[i].x = rand() % 4 * i;
+                enemy[i].y = enemy[i].height - rand() % 4 * i;
+            }
+        }
+    }
+
+
+    
 
     DrawScene(visMatrix_inside);
 }
@@ -235,7 +310,6 @@ void Tema1::DrawScene(glm::mat3 visMatrix)
 
     modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
     RenderMesh2D(meshes["obstacle5"], shaders["VertexColor"], modelMatrix);
-
 
     modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
     RenderMesh2D(meshes["obstacle6"], shaders["VertexColor"], modelMatrix);
@@ -265,6 +339,18 @@ void Tema1::DrawScene(glm::mat3 visMatrix)
     modelMatrix = visMatrix_inside * transform2D::Translate(player.x + 2.0f, player.y + 2.0f) * transform2D::Scale(0.05, 0.06)
         * transform2D::Rotate(player.angle);
     RenderMesh2D(meshes["player"], shaders["VertexColor"], modelMatrix);
+     
+    // Enemy Render
+    {
+        
+        for (int i = 0; i < numberOfEnemies; ++i) {
+            enemy[i].angle = -player.angle; // atan(player.y / player.x);
+            modelMatrix = visMatrix_inside * transform2D::Translate(enemy[i].x, enemy[i].y) * transform2D::Scale(0.3f, 0.3f)
+                ;// *transform2D::Rotate(enemy[i].angle);
+            RenderMesh2D(meshes["enemy" + to_string(i)], shaders["VertexColor"], modelMatrix);
+            //}
+        }
+    }
 }
 
 
@@ -283,7 +369,7 @@ bool Tema1::CheckCollisionObstacleD(float x, float y) {
 void Tema1::OnInputUpdate(float deltaTime, int mods)
 {
     // TODO(student): Move the logic window with W, A, S, D (up, left, down, right)
-  //  printf("%f x %f y\n", player.x, player.y);
+    //  printf("%f x %f y\n", player.x, player.y);
 
     glm::ivec2 resolution = window->GetResolution();
     if (window->KeyHold(GLFW_KEY_W)) {
