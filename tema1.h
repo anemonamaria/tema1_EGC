@@ -4,14 +4,12 @@
 
 /*
     - de rezolvat TODO-URILE
-    - de modificat viteza cu care se schimba directia jucatorului
+    - de modificat viteza cu care se schimba directia jucatorului si a proiectilelor
     - de facut coliziunile cu obstacolele
     - de facut viewport-ul   -din logicspace
-    - de aruncat cu proiectile
     - de facut inamicii sa vina
     - de retinut scorul
     - de facut healthbarul
-    - de pus obstacolele mai bine in scena
 
 */
 namespace m1
@@ -62,6 +60,9 @@ namespace m1
         void OnMouseBtnRelease(int mouseX, int mouseY, int button, int mods) override;
         void OnMouseScroll(int mouseX, int mouseY, int offsetX, int offsetY) override;
         void Tema1::setPlayerAngle();
+        bool CheckCollisionObstacleD(float x, float y);
+        bool Tema1::projectileOutOfBounds();
+        void Tema1::ResetProjectile();
 
         // Sets the logic space and view space
         // logicSpace: { x, y, width, height }
@@ -83,6 +84,13 @@ namespace m1
             int speed;
             float x, y, angle;
         } player;
+
+        struct projectile_t {
+            float length, angle, power, x, y;
+            bool isCharging, isMoving;
+        } projectile;
+
+        float l;
     };
 }   // namespace m1
 

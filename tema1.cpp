@@ -31,6 +31,12 @@ void Tema1::Init()
 {
     glm::ivec2 resolution = window->GetResolution();
 
+    player.angle = projectile.angle = 0;
+    player.x = projectile.x =  0;
+    player.y = projectile.y = 0;
+    projectile.length = 30;
+    projectile.isCharging = projectile.isMoving = false;
+
     auto camera = GetSceneCamera();
     camera->SetOrthographic(0, (float)resolution.x, 0, (float)resolution.y, 0.01f, 400);
     camera->SetPosition(glm::vec3(0, 0, 50));
@@ -46,26 +52,41 @@ void Tema1::Init()
     glm::vec3 corner = glm::vec3(0.001, 0.001, 0);
     length = 0.99f;
 
-    player.angle = 0;
-    player.x = 0;
-    player.y = 0;
-    
-    Mesh* obstacle1 = object2D::CreateSquare1("obstacle1", glm::vec3(0.2, 0.2, 0), 0.19f, 0.30f, glm::vec3(0.5, 0.5, 0), true);
+
+    /*glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(player.x - 100 / 2.0, player.x + 100 / 2.0, player.y - 100 / 2.0, player.y + 100 / 2.0);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();*/
+
+    Mesh* obstacle1 = object2D::CreateSquare1("obstacle1", glm::vec3(0.25, 0.4, 0), 0.1f, 0.70f, glm::vec3(0.5, 0.5, 0), true);
     AddMeshToList(obstacle1);
 
-    Mesh* obstacle2 = object2D::CreateSquare1("obstacle2", glm::vec3(0.1, 0.9, 0), 0.4f, 0.25f, glm::vec3(0.5, 0.5, 0), true);
+    Mesh* obstacle2 = object2D::CreateSquare1("obstacle2", glm::vec3(0.5, 2.5, 0), 0.8f, 0.25f, glm::vec3(0.5, 0.5, 0), true);
     AddMeshToList(obstacle2);
 
-    Mesh* obstacle3 = object2D::CreateSquare1("obstacle3", glm::vec3(0.4, 0.6, 0), 0.3f, 0.1f, glm::vec3(0.5, 0.5, 0), true);
+    Mesh* obstacle3 = object2D::CreateSquare1("obstacle3", glm::vec3(0.4, 1.5, 0), 0.3f, 0.3f, glm::vec3(0.5, 0.5, 0), true);
     AddMeshToList(obstacle3);
 
-    Mesh* obstacle4 = object2D::CreateSquare1("obstacle4", glm::vec3(1, 1, 0), 0.2f, 0.4f, glm::vec3(0.5, 0.5, 0), true);
+    Mesh* obstacle4 = object2D::CreateSquare1("obstacle4", glm::vec3(1.4, 1, 0), 0.6f, 0.4f, glm::vec3(0.5, 0.5, 0), true);
     AddMeshToList(obstacle4);
 
-    Mesh* obstacle5 = object2D::CreateSquare1("obstacle5", glm::vec3(0.8, 0.7, 0), 0.7f, 0.2f, glm::vec3(0.5, 0.5, 0), true);
+    Mesh* obstacle5 = object2D::CreateSquare1("obstacle5", glm::vec3(1.7, 2.4, 0), 0.2f, 1.0f, glm::vec3(0.5, 0.5, 0), true);
     AddMeshToList(obstacle5);
 
-    Mesh* projectile = object2D::CreateSquare1("projectile", glm::vec3(0.7, 0.7, 0), 0.03f, 0.06f, glm::vec3(0, 0, 0), true);
+    Mesh* obstacle6 = object2D::CreateSquare1("obstacle6", glm::vec3(2.5, 3, 0), 0.5f, 0.50f, glm::vec3(0.5, 0.5, 0), true);
+    AddMeshToList(obstacle6);
+    
+    Mesh* obstacle7 = object2D::CreateSquare1("obstacle7", glm::vec3(2.7, 1.4, 0), 0.6f, 0.3f, glm::vec3(0.5, 0.5, 0), true);
+    AddMeshToList(obstacle7);
+    
+    Mesh* obstacle8 = object2D::CreateSquare1("obstacle8", glm::vec3(3.7, 0.7, 0), 0.1f, 1.0f, glm::vec3(0.5, 0.5, 0), true);
+    AddMeshToList(obstacle8);
+
+    Mesh* obstacle9 = object2D::CreateSquare1("obstacle9", glm::vec3(3.7, 2.7, 0), 0.1f, 1.0f, glm::vec3(0.5, 0.5, 0), true);
+    AddMeshToList(obstacle9);
+
+    Mesh* projectile = object2D::CreateSquare1("projectile", glm::vec3(0.0, 0.0, 0), 0.03f, 0.06f, glm::vec3(0, 0, 0), true);
     AddMeshToList(projectile);
 
     Mesh* enemy1 = object2D::CreateEnemy("enemy1", glm::vec3(0.3, 0.3, 0), glm::vec3(1, 1, 1), glm::vec3(1, 0, 0));
@@ -138,8 +159,21 @@ void Tema1::FrameStart()
     // Clears the color buffer (using the previously set color) and depth buffer
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+   
 }
 
+bool Tema1::projectileOutOfBounds() {
+    glm::ivec2 resolution = window->GetResolution();
+    return (projectile.x > 2 || projectile.y < -2 || projectile.y > 2 || projectile.x < -2);
+}
+
+void Tema1::ResetProjectile() {
+    projectile.x = player.x;
+    projectile.y = player.y;
+    projectile.angle = player.angle;
+    projectile.isMoving = false;
+}
 
 void Tema1::Update(float deltaTimeSeconds)
 {
@@ -156,12 +190,25 @@ void Tema1::Update(float deltaTimeSeconds)
     DrawScene(visMatrix_outside);
 
     // TODO OK???? 
-    viewSpace = ViewportSpace(20, 20, resolution.x - 40, resolution.y - 40);  // dimensiunile in care ma pot misca
+    viewSpace = ViewportSpace(0, 0, resolution.x, resolution.y);  // dimensiunile in care ma pot misca
     SetViewportArea(viewSpace, glm::vec3(0.63, 0.54, 0.51), true);
 
     // Compute the 2D visualization matrix
     visMatrix_inside = glm::mat3(1);
+    /*logicSpace.height = player.y + 500;
+    logicSpace.width = player.x + 500;
+    logicSpace.x = player.x - 500;
+    logicSpace.y = player.y - 500;*/
     visMatrix_inside *= VisualizationTransf2D(logicSpace, viewSpace);
+    
+    {
+        if (projectile.isMoving) {
+            projectile.x += projectile.power * deltaTimeSeconds * 2.f * cos(projectile.angle);
+            projectile.y += projectile.power * deltaTimeSeconds * 2.f * sin(projectile.angle);
+        }
+        if (projectileOutOfBounds())
+            ResetProjectile();
+    }
 
     DrawScene(visMatrix_inside);
 }
@@ -174,33 +221,47 @@ void Tema1::FrameEnd()
 
 void Tema1::DrawScene(glm::mat3 visMatrix)
 {
-    modelMatrix = visMatrix_inside * transform2D::Translate(0, 0);
+    modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
     RenderMesh2D(meshes["obstacle1"], shaders["VertexColor"], modelMatrix); // TODO de aici eroare ciudata de compilare
 
-    modelMatrix = visMatrix_inside * transform2D::Translate(0, 0);
+    modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
     RenderMesh2D(meshes["obstacle2"], shaders["VertexColor"], modelMatrix);
 
-    modelMatrix = visMatrix_inside * transform2D::Translate(0, 0);
+    modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
     RenderMesh2D(meshes["obstacle3"], shaders["VertexColor"], modelMatrix);
 
-    modelMatrix = visMatrix_inside * transform2D::Translate(0, 0);
+    modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
     RenderMesh2D(meshes["obstacle4"], shaders["VertexColor"], modelMatrix);
 
-    modelMatrix = visMatrix_inside * transform2D::Translate(0, 0);
+    modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
     RenderMesh2D(meshes["obstacle5"], shaders["VertexColor"], modelMatrix);
 
-    modelMatrix = visMatrix_inside * transform2D::Translate(0, 0);
+
+    modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
+    RenderMesh2D(meshes["obstacle6"], shaders["VertexColor"], modelMatrix);
+
+    modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
+    RenderMesh2D(meshes["obstacle7"], shaders["VertexColor"], modelMatrix);
+
+    modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
+    RenderMesh2D(meshes["obstacle8"], shaders["VertexColor"], modelMatrix);
+
+    modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
+    RenderMesh2D(meshes["obstacle9"], shaders["VertexColor"], modelMatrix);
+
+    modelMatrix = visMatrix_outside * transform2D::Translate(projectile.x + 2.0f, projectile.y + 2.0f) 
+       * transform2D::Rotate(projectile.angle);
     RenderMesh2D(meshes["projectile"], shaders["VertexColor"], modelMatrix);
 
-    modelMatrix = visMatrix_inside * transform2D::Translate(0, 0);
+    /* modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
     RenderMesh2D(meshes["square1"], shaders["VertexColor"], modelMatrix);
 
-    modelMatrix = visMatrix_inside * transform2D::Translate(0, 0) * transform2D::Scale(0.2, 0.2);
+    modelMatrix = visMatrix_outside * transform2D::Translate(0, 0) * transform2D::Scale(0.2, 0.2);
     RenderMesh2D(meshes["enemy1"], shaders["VertexColor"], modelMatrix);
 
-    modelMatrix = visMatrix_inside * transform2D::Translate(0.5, 0.5) * transform2D::Scale(0.02, 0.03);
+    modelMatrix = visMatrix_outside * transform2D::Translate(0.5, 0.5) * transform2D::Scale(0.02, 0.03);
     RenderMesh2D(meshes["circle"], shaders["VertexColor"], modelMatrix);
-
+    */
     modelMatrix = visMatrix_inside * transform2D::Translate(player.x + 2.0f, player.y + 2.0f) * transform2D::Scale(0.05, 0.06)
         * transform2D::Rotate(player.angle);
     RenderMesh2D(meshes["player"], shaders["VertexColor"], modelMatrix);
@@ -212,47 +273,81 @@ void Tema1::DrawScene(glm::mat3 visMatrix)
  *  how they behave, see `input_controller.h`.
  */
 
+bool Tema1::CheckCollisionObstacleD(float x, float y) {
+    if ( x == -1.82f)
+        return false;
+
+    return true;
+}
 
 void Tema1::OnInputUpdate(float deltaTime, int mods)
 {
     // TODO(student): Move the logic window with W, A, S, D (up, left, down, right)
+  //  printf("%f x %f y\n", player.x, player.y);
+
     glm::ivec2 resolution = window->GetResolution();
     if (window->KeyHold(GLFW_KEY_W)) {
         if (player.y < 1.9f) { //  dc nu se opreste????
             player.y += deltaTime;
+            if (!projectile.isMoving)
+                projectile.y = player.y;
 
         }
     }
     if (window->KeyHold(GLFW_KEY_A)) {
         if (player.x > -1.9f) {
             player.x -= deltaTime;
+            if (!projectile.isMoving)
+                projectile.x = player.x;
+
         }
     }
     if (window->KeyHold(GLFW_KEY_S)) {
         if (player.y > -1.9f) {
             player.y -= deltaTime;
+            if (!projectile.isMoving)
+                projectile.y = player.y;
 
         }
     }
     if (window->KeyHold(GLFW_KEY_D)) {
-        if (player.x < 1.9f) {
-        player.x += deltaTime;
+        /*if (CheckCollisionObstacleD(player.x, player.y) == true) {
+            printf("da\n");
+        }
+       else ("nu\n"); */
+        if (player.x < 1.9f){ // && CheckCollisionObstacleD(player.x, player.y)) {
+            player.x += deltaTime;
+            if (!projectile.isMoving)
+                projectile.x = player.x;
+
         }
     }
-    //// TODO(student): Zoom in and zoom out logic window with Z and X
-    //if (window->KeyHold(GLFW_KEY_Z)) {
-    //    logicSpace.height += deltaTime;
-    //    logicSpace.width += deltaTime;
-    //    logicSpace.x += deltaTime / 2;  // todo nu merg astea, se scaleaza din colt
-    //    logicSpace.y += deltaTime / 2;
+    // TODO(student): Zoom in and zoom out logic window with Z and X
+    if (window->KeyHold(GLFW_KEY_Z)) {
+        logicSpace.height += deltaTime;
+        logicSpace.width += deltaTime;
+        logicSpace.x += deltaTime / 2;  // todo nu merg astea, se scaleaza din colt
+        logicSpace.y += deltaTime / 2;  // cu astea se poate face logicspace-ul centrat pe jucator ?? la wasd
 
-    //}
-    //if (window->KeyHold(GLFW_KEY_X)) {
-    //    logicSpace.height -= deltaTime;
-    //    logicSpace.width -= deltaTime;
-    //    logicSpace.x -= deltaTime / 2;
-    //    logicSpace.y -= deltaTime / 2;
-    //}
+    }
+    if (window->KeyHold(GLFW_KEY_X)) {
+        logicSpace.height -= deltaTime;
+        logicSpace.width -= deltaTime;
+        logicSpace.x -= deltaTime / 2;
+        logicSpace.y -= deltaTime / 2;
+    }
+
+    if (!projectile.isMoving && window->MouseHold(GLFW_MOUSE_BUTTON_LEFT)) {  
+        projectile.isMoving = true;
+        projectile.power = 1.1;
+    }
+    else if (!window->MouseHold(GLFW_MOUSE_BUTTON_LEFT)) {
+        if (projectile.isCharging) { // move the arrow
+            projectile.isCharging = false;
+            projectile.isMoving = true;
+            projectile.power = 1.1;
+        }
+    }
 }
 
 
@@ -271,6 +366,8 @@ void Tema1::setPlayerAngle() {
     float dy = resolution.y - player.y - cursorY;
     float dx = cursorX - player.x;
     player.angle = atan(dy / dx) / M_PI * 180.0f;
+    if (!projectile.isMoving)
+        projectile.angle = player.angle;
     
 }
 
