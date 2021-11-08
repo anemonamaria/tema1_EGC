@@ -4,6 +4,7 @@
 #include <iostream>
 #include <math.h>
 
+
 #include "lab_m1/Tema1/transform2D.h"
 #include "lab_m1/Tema1/object2D.h"
 
@@ -31,11 +32,13 @@ void Tema1::Init()
 {
     glm::ivec2 resolution = window->GetResolution();
 
+    player.lives = 1.0f;
     player.angle = projectile.angle = 0;
     player.x = projectile.x =  0;
     player.y = projectile.y = 0;
     projectile.length = 30;
     projectile.isCharging = projectile.isMoving = false;
+    
 
     auto camera = GetSceneCamera();
     camera->SetOrthographic(0, (float)resolution.x, 0, (float)resolution.y, 0.01f, 400);
@@ -58,6 +61,8 @@ void Tema1::Init()
     gluOrtho2D(player.x - 100 / 2.0, player.x + 100 / 2.0, player.y - 100 / 2.0, player.y + 100 / 2.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();*/
+    Mesh* healthBar = object2D::CreateSquare1("healthBar", glm::vec3(3.25, 3.8, 0), 0.7f, 0.10f, glm::vec3(1, 0, 0), true);
+    AddMeshToList(healthBar);
 
     Mesh* obstacle1 = object2D::CreateSquare1("obstacle1", glm::vec3(0.25, 0.4, 0), 0.1f, 0.70f, glm::vec3(0.5, 0.5, 0), true);
     AddMeshToList(obstacle1);
@@ -89,9 +94,6 @@ void Tema1::Init()
     Mesh* projectile = object2D::CreateSquare1("projectile", glm::vec3(0.0, 0.0, 0), 0.03f, 0.06f, glm::vec3(0, 0, 0), true);
     AddMeshToList(projectile);
 
-    //Mesh* enemy1 = object2D::CreateEnemy("enemy1", glm::vec3(0.3, 0.3, 0), glm::vec3(1, 1, 1), glm::vec3(1, 0, 0));
-    //AddMeshToList(enemy1);
-
     Mesh* circle = object2D::CreateCircle("circle", glm::vec3(0.4, 0.4, 0), 2, glm::vec3(0.7, 0.3, 0));
     AddMeshToList(circle);
 
@@ -108,7 +110,7 @@ void Tema1::Init()
             enemy_aux.width = 0.3f;
             enemy_aux.height = 0.3f;
             enemy_aux.x =  i * rand() % 4;
-            enemy_aux.y = enemy_aux.height - rand() % 4 * i;
+            enemy_aux.y =  rand() % 4 * i;
             if (i >= numberOfEnemies / 2 + 1)
                 enemy_aux.y -= 0.5;
 
@@ -197,7 +199,7 @@ bool Tema1::positionOutOfBonds(float x, float y) {
 void Tema1::ResetProjectile() {
     projectile.x = player.x;
     projectile.y = player.y;
-    projectile.angle = player.angle;
+    projectile.angle = player.angle + 3 * M_PI / 2;
     projectile.isMoving = false;
 }
 
@@ -240,13 +242,8 @@ void Tema1::Update(float deltaTimeSeconds)
 
     // Enemy Movement
     {
+        
         for (int i = 0; i < numberOfEnemies; ++i) {
-            /*if (window->KeyHold(GLFW_KEY_D) || window->KeyHold(GLFW_KEY_W)
-                || window->KeyHold(GLFW_KEY_S) || window->KeyHold(GLFW_KEY_A)) {
-                enemy[i].y += deltaTimeSeconds * 0.35f * player.y;
-                enemy[i].x += deltaTimeSeconds * 0.35f * player.x;
-            }
-            else {*/
             if (player.y + 2.0f > enemy[i].y) {
                 do {
                     enemy[i].y += deltaTimeSeconds * 0.3f;
@@ -257,6 +254,7 @@ void Tema1::Update(float deltaTimeSeconds)
                     enemy[i].y -= deltaTimeSeconds * 0.3f;
                 } while (enemy[i].y == player.y + 2.0f);
             }
+
             if (player.x + 2.0f > enemy[i].x) {
                 do {
                     enemy[i].x += deltaTimeSeconds * 0.3f;
@@ -267,13 +265,6 @@ void Tema1::Update(float deltaTimeSeconds)
                     enemy[i].x -= deltaTimeSeconds * 0.3f;
                 } while (enemy[i].x == player.x + 2.0f);
             }
-                
-                /*do{
-                    enemy[i].x += deltaTimeSeconds * 0.2f;
-                } while (enemy[i].x == player.x);*/
-                
-                
-            //}
              
             if (positionOutOfBonds(enemy[i].x, enemy[i].y)) {
                 enemy[i].x = rand() % 4 * i;
@@ -281,9 +272,6 @@ void Tema1::Update(float deltaTimeSeconds)
             }
         }
     }
-
-
-    
 
     DrawScene(visMatrix_inside);
 }
@@ -296,6 +284,26 @@ void Tema1::FrameEnd()
 
 void Tema1::DrawScene(glm::mat3 visMatrix)
 {
+    modelMatrix = visMatrix_inside * transform2D::Translate(0, 0) *transform2D::Scale(player.lives, 1.0f);
+    RenderMesh2D(meshes["healthBar"], shaders["VertexColor"], modelMatrix);
+
+    modelMatrix = visMatrix_inside * transform2D::Translate(player.x + 2.0f, player.y + 2.0f) * transform2D::Scale(0.05, 0.06)
+        * transform2D::Rotate(player.angle);
+    RenderMesh2D(meshes["player"], shaders["VertexColor"], modelMatrix);
+
+    modelMatrix = visMatrix_outside * transform2D::Translate(projectile.x + 2.0f, projectile.y + 2.0f)
+        * transform2D::Rotate(projectile.angle);
+    RenderMesh2D(meshes["projectile"], shaders["VertexColor"], modelMatrix);
+
+    // Enemy Render
+    {
+        for (int i = 0; i < numberOfEnemies; ++i) {
+            modelMatrix = visMatrix_inside * transform2D::Translate(enemy[i].x, enemy[i].y) * transform2D::Scale(0.3f, 0.3f);
+            RenderMesh2D(meshes["enemy" + to_string(i)], shaders["VertexColor"], modelMatrix);
+
+        }
+    }
+
     modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
     RenderMesh2D(meshes["obstacle1"], shaders["VertexColor"], modelMatrix); // TODO de aici eroare ciudata de compilare
 
@@ -321,36 +329,8 @@ void Tema1::DrawScene(glm::mat3 visMatrix)
     RenderMesh2D(meshes["obstacle8"], shaders["VertexColor"], modelMatrix);
 
     modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
-    RenderMesh2D(meshes["obstacle9"], shaders["VertexColor"], modelMatrix);
-
-    modelMatrix = visMatrix_outside * transform2D::Translate(projectile.x + 2.0f, projectile.y + 2.0f) 
-       * transform2D::Rotate(projectile.angle);
-    RenderMesh2D(meshes["projectile"], shaders["VertexColor"], modelMatrix);
-
-    /* modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
-    RenderMesh2D(meshes["square1"], shaders["VertexColor"], modelMatrix);
-
-    modelMatrix = visMatrix_outside * transform2D::Translate(0, 0) * transform2D::Scale(0.2, 0.2);
-    RenderMesh2D(meshes["enemy1"], shaders["VertexColor"], modelMatrix);
-
-    modelMatrix = visMatrix_outside * transform2D::Translate(0.5, 0.5) * transform2D::Scale(0.02, 0.03);
-    RenderMesh2D(meshes["circle"], shaders["VertexColor"], modelMatrix);
-    */
-    modelMatrix = visMatrix_inside * transform2D::Translate(player.x + 2.0f, player.y + 2.0f) * transform2D::Scale(0.05, 0.06)
-        * transform2D::Rotate(player.angle);
-    RenderMesh2D(meshes["player"], shaders["VertexColor"], modelMatrix);
-     
-    // Enemy Render
-    {
-        
-        for (int i = 0; i < numberOfEnemies; ++i) {
-            enemy[i].angle = -player.angle; // atan(player.y / player.x);
-            modelMatrix = visMatrix_inside * transform2D::Translate(enemy[i].x, enemy[i].y) * transform2D::Scale(0.3f, 0.3f)
-                ;// *transform2D::Rotate(enemy[i].angle);
-            RenderMesh2D(meshes["enemy" + to_string(i)], shaders["VertexColor"], modelMatrix);
-            //}
-        }
-    }
+    RenderMesh2D(meshes["obstacle9"], shaders["VertexColor"], modelMatrix);   
+    
 }
 
 
@@ -369,11 +349,10 @@ bool Tema1::CheckCollisionObstacleD(float x, float y) {
 void Tema1::OnInputUpdate(float deltaTime, int mods)
 {
     // TODO(student): Move the logic window with W, A, S, D (up, left, down, right)
-    //  printf("%f x %f y\n", player.x, player.y);
 
     glm::ivec2 resolution = window->GetResolution();
     if (window->KeyHold(GLFW_KEY_W)) {
-        if (player.y < 1.9f) { //  dc nu se opreste????
+        if (player.y < 1.9f) { 
             player.y += deltaTime;
             if (!projectile.isMoving)
                 projectile.y = player.y;
@@ -397,31 +376,28 @@ void Tema1::OnInputUpdate(float deltaTime, int mods)
         }
     }
     if (window->KeyHold(GLFW_KEY_D)) {
-        /*if (CheckCollisionObstacleD(player.x, player.y) == true) {
-            printf("da\n");
-        }
-       else ("nu\n"); */
-        if (player.x < 1.9f){ // && CheckCollisionObstacleD(player.x, player.y)) {
+
+        if (player.x < 1.9f){ 
             player.x += deltaTime;
             if (!projectile.isMoving)
                 projectile.x = player.x;
 
         }
     }
-    // TODO(student): Zoom in and zoom out logic window with Z and X
-    if (window->KeyHold(GLFW_KEY_Z)) {
-        logicSpace.height += deltaTime;
-        logicSpace.width += deltaTime;
-        logicSpace.x += deltaTime / 2;  // todo nu merg astea, se scaleaza din colt
-        logicSpace.y += deltaTime / 2;  // cu astea se poate face logicspace-ul centrat pe jucator ?? la wasd
+    //// TODO(student): Zoom in and zoom out logic window with Z and X
+    //if (window->KeyHold(GLFW_KEY_Z)) {
+    //    logicSpace.height += deltaTime;
+    //    logicSpace.width += deltaTime;
+    //    logicSpace.x += deltaTime / 2;  // todo nu merg astea, se scaleaza din colt
+    //    logicSpace.y += deltaTime / 2;  // cu astea se poate face logicspace-ul centrat pe jucator ?? la wasd
 
-    }
-    if (window->KeyHold(GLFW_KEY_X)) {
-        logicSpace.height -= deltaTime;
-        logicSpace.width -= deltaTime;
-        logicSpace.x -= deltaTime / 2;
-        logicSpace.y -= deltaTime / 2;
-    }
+    //}
+    //if (window->KeyHold(GLFW_KEY_X)) {
+    //    logicSpace.height -= deltaTime;
+    //    logicSpace.width -= deltaTime;
+    //    logicSpace.x -= deltaTime / 2;
+    //    logicSpace.y -= deltaTime / 2;
+    //}
 
     if (!projectile.isMoving && window->MouseHold(GLFW_MOUSE_BUTTON_LEFT)) {  
         projectile.isMoving = true;
@@ -449,11 +425,33 @@ void Tema1::OnKeyRelease(int key, int mods)
 
 void Tema1::setPlayerAngle() {
     glm::ivec2 resolution = window->GetResolution();
-    float dy = resolution.y - player.y - cursorY;
-    float dx = cursorX - player.x;
-    player.angle = atan(dy / dx) / M_PI * 180.0f;
+
+    int ax = player.x * resolution.x / 4 + resolution.x / 2;
+    int ay = player.y * resolution.y / 4 + resolution.y / 2;
+    // TODO dupa ce faci viewport ul ok (centrarea) verifica orientarea
+    ax = cursorX - ax;
+    ay = - cursorY + ay;
+    glm::vec2 auxvect = glm::normalize(glm::vec2(ax, ay));
+    if (auxvect.y < 0) {
+        auxvect.x = -auxvect.x;
+    } 
+    if(auxvect.x == 0 && auxvect.y < 0) {
+        player.angle = 180.f;
+    }
+    else if (auxvect.x == 0 && auxvect.y > 0) {
+        player.angle = 0.f;
+    }
+     else 
+    {
+        player.angle = atan(auxvect.x / auxvect.y);
+    }
+    if (auxvect.y > 0) {
+        player.angle = -player.angle + M_PI;
+    }
+    printf("%f \n", player.angle / M_PI * 180.f);
+    //printf("%f atan %f dx %f dy %d cursor.x %d cursor.y %f playee.x %f player.y\n", player.angle, dx, dy, (float)cursorX, (float)cursorY, player.x, player.y );
     if (!projectile.isMoving)
-        projectile.angle = player.angle;
+        projectile.angle = player.angle + 3 * M_PI / 2;
     
 }
 

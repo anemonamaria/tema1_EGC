@@ -85,6 +85,7 @@ namespace m1
         struct player_t {
             int speed;
             float x, y, angle;
+            float lives;
         } player;
 
         struct projectile_t {
@@ -101,7 +102,7 @@ namespace m1
         std::vector <struct enemy_t> enemy;
 
         float l;
-        int numberOfEnemies;
+        int numberOfEnemies, numberOfEnemies_current;
     };
 }   // namespace m1
 
