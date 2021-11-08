@@ -38,6 +38,7 @@ void Tema1::Init()
     player.y = projectile.y = 0;
     projectile.length = 30;
     projectile.isCharging = projectile.isMoving = false;
+    obstacle.x = obstacle.y = 0;
     
 
     auto camera = GetSceneCamera();
@@ -55,53 +56,40 @@ void Tema1::Init()
     glm::vec3 corner = glm::vec3(0.001, 0.001, 0);
     length = 0.99f;
 
-
     /*glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluOrtho2D(player.x - 100 / 2.0, player.x + 100 / 2.0, player.y - 100 / 2.0, player.y + 100 / 2.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();*/
-    Mesh* healthBar = object2D::CreateSquare1("healthBar", glm::vec3(3.25, 3.8, 0), 0.7f, 0.10f, glm::vec3(1, 0, 0), true);
+    Mesh* healthBar = object2D::CreateSquare1("healthBar", glm::vec3(3.25, 3.8, 0), 0.7f, 0.10f, glm::vec3(0.850, 0.792, 0.701), true);
     AddMeshToList(healthBar);
 
-    Mesh* obstacle1 = object2D::CreateSquare1("obstacle1", glm::vec3(0.25, 0.4, 0), 0.1f, 0.70f, glm::vec3(0.5, 0.5, 0), true);
-    AddMeshToList(obstacle1);
+    Mesh* healthBar_wf = object2D::CreateSquare1("healthBar_wf", glm::vec3(3.25, 3.8, 0), 0.7f, 0.10f, glm::vec3(0.850, 0.792, 0.710), false);
+    AddMeshToList(healthBar_wf);
 
-    Mesh* obstacle2 = object2D::CreateSquare1("obstacle2", glm::vec3(0.5, 2.5, 0), 0.8f, 0.25f, glm::vec3(0.5, 0.5, 0), true);
-    AddMeshToList(obstacle2);
+    Mesh* obstacleMesh = object2D::CreateSquare1("obstacle", glm::vec3(obstacle.x, obstacle.y, 0), 0.5f, 0.5f, glm::vec3(0.529, 0.658, 0.643), true);
+    AddMeshToList(obstacleMesh);
 
-    Mesh* obstacle3 = object2D::CreateSquare1("obstacle3", glm::vec3(0.4, 1.5, 0), 0.3f, 0.3f, glm::vec3(0.5, 0.5, 0), true);
-    AddMeshToList(obstacle3);
-
-    Mesh* obstacle4 = object2D::CreateSquare1("obstacle4", glm::vec3(1.4, 1, 0), 0.6f, 0.4f, glm::vec3(0.5, 0.5, 0), true);
-    AddMeshToList(obstacle4);
-
-    Mesh* obstacle5 = object2D::CreateSquare1("obstacle5", glm::vec3(1.7, 2.4, 0), 0.2f, 1.0f, glm::vec3(0.5, 0.5, 0), true);
-    AddMeshToList(obstacle5);
-
-    Mesh* obstacle6 = object2D::CreateSquare1("obstacle6", glm::vec3(2.5, 3, 0), 0.5f, 0.50f, glm::vec3(0.5, 0.5, 0), true);
-    AddMeshToList(obstacle6);
+    Mesh* margin1 = object2D::CreateSquare1("margin1", glm::vec3(0, 0, 0), 0.05f, 4.f, glm::vec3(0.529, 0.658, 0.643), true);
+    AddMeshToList(margin1);
     
-    Mesh* obstacle7 = object2D::CreateSquare1("obstacle7", glm::vec3(2.7, 1.4, 0), 0.6f, 0.3f, glm::vec3(0.5, 0.5, 0), true);
-    AddMeshToList(obstacle7);
+    Mesh* margin2 = object2D::CreateSquare1("margin2", glm::vec3(0.f, 3.93f, 0), 4.f, 0.07f, glm::vec3(0.529, 0.658, 0.643), true);
+    AddMeshToList(margin2);
     
-    Mesh* obstacle8 = object2D::CreateSquare1("obstacle8", glm::vec3(3.7, 0.7, 0), 0.1f, 1.0f, glm::vec3(0.5, 0.5, 0), true);
-    AddMeshToList(obstacle8);
+    Mesh* margin3 = object2D::CreateSquare1("margin3", glm::vec3(3.95f, 0, 0), 0.05f, 4.f, glm::vec3(0.529, 0.658, 0.643), true);
+    AddMeshToList(margin3);
+    
+    Mesh* margin4 = object2D::CreateSquare1("margin4", glm::vec3(0.f, 0.f, 0), 4.f, 0.07f, glm::vec3(0.529, 0.658, 0.643), true);
+    AddMeshToList(margin4);
 
-    Mesh* obstacle9 = object2D::CreateSquare1("obstacle9", glm::vec3(3.7, 2.7, 0), 0.1f, 1.0f, glm::vec3(0.5, 0.5, 0), true);
-    AddMeshToList(obstacle9);
-
-    Mesh* projectile = object2D::CreateSquare1("projectile", glm::vec3(0.0, 0.0, 0), 0.03f, 0.06f, glm::vec3(0, 0, 0), true);
+    Mesh* projectile = object2D::CreateSquare1("projectile", glm::vec3(0.0, 0.0, 0), 0.03f, 0.06f, glm::vec3(0.137, 0.011, 0.207), true);
     AddMeshToList(projectile);
-
-    Mesh* circle = object2D::CreateCircle("circle", glm::vec3(0.4, 0.4, 0), 2, glm::vec3(0.7, 0.3, 0));
-    AddMeshToList(circle);
 
     player.angle = 0;
     Mesh* player = object2D::CreatePlayer("player");
     AddMeshToList(player);
 
-    srand(time(NULL));
+    
 
     {
         numberOfEnemies = 5;
@@ -109,13 +97,15 @@ void Tema1::Init()
         for (int i = 0; i < numberOfEnemies; ++i) {
             enemy_aux.width = 0.3f;
             enemy_aux.height = 0.3f;
-            enemy_aux.x =  i * rand() % 4;
-            enemy_aux.y =  rand() % 4 * i;
-            if (i >= numberOfEnemies / 2 + 1)
-                enemy_aux.y -= 0.5;
+            srand(time(NULL));
+            enemy_aux.x = i * rand() % 4;// / 5; // * 0.1f;
+            enemy_aux.y = 0; // rand() % 4 * i / 5; // * 0.1f;
+            enemy_aux.diffX = 4.0f - enemy_aux.x;
+            enemy_aux.diffY = 4.0f - enemy_aux.y;
+            printf("%f diff x %f diff y %f x %f y \n ", enemy_aux.diffX, enemy_aux.diffY, enemy_aux.x, enemy_aux.y);
 
             enemy_aux.onScreen = true;
-            enemy_aux.color = (i < numberOfEnemies / 2 + 1) ? glm::vec3(1, 0, 0) : glm::vec3(1, 1, 0);
+            enemy_aux.color = glm::vec3(0.596, 0.427, 0.556);
             enemy_aux.scale = 1;
             enemy.push_back(enemy_aux);
 
@@ -183,9 +173,7 @@ void Tema1::FrameStart()
 {
     // Clears the color buffer (using the previously set color) and depth buffer
     glClearColor(0, 0, 0, 1);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-   
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);   
 }
 
 bool Tema1::projectileOutOfBounds() {
@@ -209,7 +197,7 @@ void Tema1::Update(float deltaTimeSeconds)
 
     // Sets the screen area where to draw
     viewSpace = ViewportSpace(0, 0, resolution.x, resolution.y);
-    SetViewportArea(viewSpace, glm::vec3(0.63, 0.54, 1.51), true);
+    SetViewportArea(viewSpace, glm::vec3(0.937, 0.890, 0.815), true);
 
     // Compute the 2D visualization matrix
     visMatrix_outside = glm::mat3(1);
@@ -219,7 +207,7 @@ void Tema1::Update(float deltaTimeSeconds)
 
     // TODO OK???? 
     viewSpace = ViewportSpace(0, 0, resolution.x, resolution.y);  // dimensiunile in care ma pot misca
-    SetViewportArea(viewSpace, glm::vec3(0.63, 0.54, 0.51), true);
+    SetViewportArea(viewSpace, glm::vec3(0.937, 0.890, 0.815), true);
 
     // Compute the 2D visualization matrix
     visMatrix_inside = glm::mat3(1);
@@ -241,37 +229,33 @@ void Tema1::Update(float deltaTimeSeconds)
     srand(time(NULL));
 
     // Enemy Movement
-    {
-        
+    {  
         for (int i = 0; i < numberOfEnemies; ++i) {
             if (player.y + 2.0f > enemy[i].y) {
-                do {
-                    enemy[i].y += deltaTimeSeconds * 0.3f;
-                } while (enemy[i].y == player.y + 2.0f);
+                do { 
+                    enemy[i].y += deltaTimeSeconds * ( i * 0.05f + 0.2f);
+                } while (enemy[i].y + enemy[i].diffY - 2.0f == player.y + 2.0f);
             }
-            else {
+            if(player.y + 2.0f < enemy[i].y) {
                 do {
-                    enemy[i].y -= deltaTimeSeconds * 0.3f;
-                } while (enemy[i].y == player.y + 2.0f);
+                    enemy[i].y -= deltaTimeSeconds * (i * 0.05f + 0.2f);
+                } while (enemy[i].y + enemy[i].diffY - 2.0f == player.y + 2.0f);
             }
 
             if (player.x + 2.0f > enemy[i].x) {
                 do {
-                    enemy[i].x += deltaTimeSeconds * 0.3f;
-                } while (enemy[i].x == player.y + 2.0f);
+                    enemy[i].x += deltaTimeSeconds * (i * 0.05f + 0.2f);
+                } while (enemy[i].x + enemy[i].diffX - 2.0f == player.y + 2.0f);
             }
-            else {
-                do {
-                    enemy[i].x -= deltaTimeSeconds * 0.3f;
-                } while (enemy[i].x == player.x + 2.0f);
-            }
-             
-            if (positionOutOfBonds(enemy[i].x, enemy[i].y)) {
-                enemy[i].x = rand() % 4 * i;
-                enemy[i].y = enemy[i].height - rand() % 4 * i;
+            if(player.x + 2.0f < enemy[i].x) {
+                do { // TODO nu se duce bine spre stanga
+                    enemy[i].x -= deltaTimeSeconds * (i * 0.05f + 0.2f);
+                } while (enemy[i].x + enemy[i].diffX - 2.0f == player.x + 2.0f);
             }
         }
     }
+    //printf("en.y %f en.x %f plx %f ply %f \n", enemy[0].y, enemy[0].x, player.x, player.y);
+
 
     DrawScene(visMatrix_inside);
 }
@@ -284,8 +268,23 @@ void Tema1::FrameEnd()
 
 void Tema1::DrawScene(glm::mat3 visMatrix)
 {
-    modelMatrix = visMatrix_inside * transform2D::Translate(0, 0) *transform2D::Scale(player.lives, 1.0f);
+    modelMatrix = visMatrix_inside * transform2D::Translate(0, 0) * transform2D::Scale(1.0f, 1.0f);
+    RenderMesh2D(meshes["healthBar_wf"], shaders["VertexColor"], modelMatrix);
+
+    modelMatrix = visMatrix_inside * transform2D::Translate(0, 0) * transform2D::Scale(player.lives, 1.0f); // TODO nu se scaleaza bine
     RenderMesh2D(meshes["healthBar"], shaders["VertexColor"], modelMatrix);
+
+    modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
+    RenderMesh2D(meshes["margin1"], shaders["VertexColor"], modelMatrix);
+
+    modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
+    RenderMesh2D(meshes["margin2"], shaders["VertexColor"], modelMatrix);
+
+    modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
+    RenderMesh2D(meshes["margin3"], shaders["VertexColor"], modelMatrix);
+    
+    modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
+    RenderMesh2D(meshes["margin4"], shaders["VertexColor"], modelMatrix);
 
     modelMatrix = visMatrix_inside * transform2D::Translate(player.x + 2.0f, player.y + 2.0f) * transform2D::Scale(0.05, 0.06)
         * transform2D::Rotate(player.angle);
@@ -304,32 +303,32 @@ void Tema1::DrawScene(glm::mat3 visMatrix)
         }
     }
 
-    modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
-    RenderMesh2D(meshes["obstacle1"], shaders["VertexColor"], modelMatrix); // TODO de aici eroare ciudata de compilare
+    modelMatrix = visMatrix_outside * transform2D::Translate(obstacle.x + 0.25f, obstacle.y + 0.4f) * transform2D::Scale( 0.5f, 1.3f);
+    RenderMesh2D(meshes["obstacle"], shaders["VertexColor"], modelMatrix);
+    
+    modelMatrix = visMatrix_outside * transform2D::Translate(obstacle.x + 0.5f, obstacle.y + 2.5f) * transform2D::Scale(0.8f, 0.5f);
+    RenderMesh2D(meshes["obstacle"], shaders["VertexColor"], modelMatrix);
 
-    modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
-    RenderMesh2D(meshes["obstacle2"], shaders["VertexColor"], modelMatrix);
+    modelMatrix = visMatrix_outside * transform2D::Translate(obstacle.x + 0.5f, obstacle.y + 2.5f) * transform2D::Scale(0.8f, 0.5f);
+    RenderMesh2D(meshes["obstacle"], shaders["VertexColor"], modelMatrix);
+    
+    modelMatrix = visMatrix_outside * transform2D::Translate(obstacle.x + 0.8f, obstacle.y + 1.f) * transform2D::Scale(0.6f, 0.6f);
+    RenderMesh2D(meshes["obstacle"], shaders["VertexColor"], modelMatrix);
+    
+    modelMatrix = visMatrix_outside * transform2D::Translate(obstacle.x + 1.3f, obstacle.y + 2.4f) * transform2D::Scale(0.6f, 1.5f);
+    RenderMesh2D(meshes["obstacle"], shaders["VertexColor"], modelMatrix);
 
-    modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
-    RenderMesh2D(meshes["obstacle3"], shaders["VertexColor"], modelMatrix);
+    modelMatrix = visMatrix_outside * transform2D::Translate(obstacle.x + 2.5f, obstacle.y + 3.f) * transform2D::Scale(0.5f, 0.8f);
+    RenderMesh2D(meshes["obstacle"], shaders["VertexColor"], modelMatrix);
 
-    modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
-    RenderMesh2D(meshes["obstacle4"], shaders["VertexColor"], modelMatrix);
+    modelMatrix = visMatrix_outside * transform2D::Translate(obstacle.x + 2.2f, obstacle.y + 1.4f) * transform2D::Scale(0.9f, 0.9f);
+    RenderMesh2D(meshes["obstacle"], shaders["VertexColor"], modelMatrix);
+    
+    modelMatrix = visMatrix_outside * transform2D::Translate(obstacle.x + 3.3f, obstacle.y + 0.7f) * transform2D::Scale(0.5f, 1.4f);
+    RenderMesh2D(meshes["obstacle"], shaders["VertexColor"], modelMatrix);
 
-    modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
-    RenderMesh2D(meshes["obstacle5"], shaders["VertexColor"], modelMatrix);
-
-    modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
-    RenderMesh2D(meshes["obstacle6"], shaders["VertexColor"], modelMatrix);
-
-    modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
-    RenderMesh2D(meshes["obstacle7"], shaders["VertexColor"], modelMatrix);
-
-    modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
-    RenderMesh2D(meshes["obstacle8"], shaders["VertexColor"], modelMatrix);
-
-    modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
-    RenderMesh2D(meshes["obstacle9"], shaders["VertexColor"], modelMatrix);   
+    modelMatrix = visMatrix_outside * transform2D::Translate(obstacle.x + 3.3f, obstacle.y + 2.7f) * transform2D::Scale(0.5f, 1.4f);
+    RenderMesh2D(meshes["obstacle"], shaders["VertexColor"], modelMatrix);   
     
 }
 
@@ -338,13 +337,6 @@ void Tema1::DrawScene(glm::mat3 visMatrix)
  *  These are callback functions. To find more about callbacks and
  *  how they behave, see `input_controller.h`.
  */
-
-bool Tema1::CheckCollisionObstacleD(float x, float y) {
-    if ( x == -1.82f)
-        return false;
-
-    return true;
-}
 
 void Tema1::OnInputUpdate(float deltaTime, int mods)
 {
@@ -441,15 +433,13 @@ void Tema1::setPlayerAngle() {
     else if (auxvect.x == 0 && auxvect.y > 0) {
         player.angle = 0.f;
     }
-     else 
+    else 
     {
         player.angle = atan(auxvect.x / auxvect.y);
     }
     if (auxvect.y > 0) {
         player.angle = -player.angle + M_PI;
     }
-    printf("%f \n", player.angle / M_PI * 180.f);
-    //printf("%f atan %f dx %f dy %d cursor.x %d cursor.y %f playee.x %f player.y\n", player.angle, dx, dy, (float)cursorX, (float)cursorY, player.x, player.y );
     if (!projectile.isMoving)
         projectile.angle = player.angle + 3 * M_PI / 2;
     

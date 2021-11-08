@@ -93,11 +93,16 @@ namespace m1
             bool isCharging, isMoving;
         } projectile;
 
+        struct obstacle_t {
+            float x, y;
+        } obstacle;
+
         struct enemy_t {
             float width, height;
             bool onScreen;
             float x, y, scale, angle;
             glm::vec3 color;
+            float diffX, diffY;
         } enemy_aux;
         std::vector <struct enemy_t> enemy;
 
