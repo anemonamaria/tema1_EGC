@@ -5,12 +5,12 @@
 
 /*
     - de rezolvat TODO-URILE
-    - de modificat viteza cu care se schimba directia jucatorului si a proiectilelor
     - de facut coliziunile cu obstacolele
     - de facut viewport-ul   -din logicspace
-    - de facut inamicii sa vina
     - de retinut scorul
-    - de facut healthbarul
+    - de facut inamicii sa vina din toate directiile
+    - de facut inamicii sa se genereze continu
+    - de facut inamicii sa se opreasca unde trebuie
 
 */
 namespace m1
@@ -61,7 +61,9 @@ namespace m1
         void OnMouseBtnRelease(int mouseX, int mouseY, int button, int mods) override;
         void OnMouseScroll(int mouseX, int mouseY, int offsetX, int offsetY) override;
         void Tema1::setPlayerAngle();
-        bool CheckCollisionObstacleD(float x, float y);
+        bool Tema1::checkProjectileObstacleCollision(int i);
+        bool Tema1::checkPlayerObstacleCollision(int i);
+        bool Tema1::checkProjectileEnemyCollision(int i);
         bool Tema1::projectileOutOfBounds();
         void Tema1::ResetProjectile();
         bool Tema1::positionOutOfBonds(float x, float y);
@@ -95,7 +97,9 @@ namespace m1
 
         struct obstacle_t {
             float x, y;
+            float scaleX, scaleY;
         } obstacle;
+        std::vector <struct obstacle_t> obstacle_struct;
 
         struct enemy_t {
             float width, height;
@@ -108,6 +112,8 @@ namespace m1
 
         float l;
         int numberOfEnemies, numberOfEnemies_current;
+        int numberOfObstacles;
+        int score;
     };
 }   // namespace m1
 

@@ -36,9 +36,10 @@ void Tema1::Init()
     player.angle = projectile.angle = 0;
     player.x = projectile.x =  0;
     player.y = projectile.y = 0;
-    projectile.length = 30;
+    projectile.length = 10;
     projectile.isCharging = projectile.isMoving = false;
     obstacle.x = obstacle.y = 0;
+    score = 0;
     
 
     auto camera = GetSceneCamera();
@@ -67,6 +68,7 @@ void Tema1::Init()
     Mesh* healthBar_wf = object2D::CreateSquare1("healthBar_wf", glm::vec3(3.25, 3.8, 0), 0.7f, 0.10f, glm::vec3(0.850, 0.792, 0.710), false);
     AddMeshToList(healthBar_wf);
 
+    numberOfObstacles = 9;
     Mesh* obstacleMesh = object2D::CreateSquare1("obstacle", glm::vec3(obstacle.x, obstacle.y, 0), 0.5f, 0.5f, glm::vec3(0.529, 0.658, 0.643), true);
     AddMeshToList(obstacleMesh);
 
@@ -98,11 +100,10 @@ void Tema1::Init()
             enemy_aux.width = 0.3f;
             enemy_aux.height = 0.3f;
             srand(time(NULL));
-            enemy_aux.x = i * rand() % 4;// / 5; // * 0.1f;
-            enemy_aux.y = 0; // rand() % 4 * i / 5; // * 0.1f;
+            enemy_aux.x = i * rand() % 4 * 0.1f / 5;
+            enemy_aux.y = rand() % 4 * i  * 0.1f / 5;
             enemy_aux.diffX = 4.0f - enemy_aux.x;
             enemy_aux.diffY = 4.0f - enemy_aux.y;
-            printf("%f diff x %f diff y %f x %f y \n ", enemy_aux.diffX, enemy_aux.diffY, enemy_aux.x, enemy_aux.y);
 
             enemy_aux.onScreen = true;
             enemy_aux.color = glm::vec3(0.596, 0.427, 0.556);
@@ -112,9 +113,61 @@ void Tema1::Init()
             enemy_new = object2D::CreateEnemy("enemy" + to_string(i), glm::vec3(enemy_aux.x, enemy_aux.y, 0), enemy_aux.color, glm::vec3(0,0,0));
             AddMeshToList(enemy_new);
         }
+
     }
 }
 
+bool Tema1::checkProjectileEnemyCollision(int i) {
+    if (!enemy[i].onScreen)
+        return false;
+    float a = enemy[i].width;
+    float b = enemy[i].height;
+
+    float x = (projectile.x + 0.03f * cos(projectile.angle)) - enemy[i].x + 2.0f;
+    float y = (projectile.y + 0.06f * sin(projectile.angle)) - enemy[i].y + 2.0f;
+
+    if (pow(x / a, 2) + pow(y / b, 2) <= 1 && (projectile.x != player.x || projectile.y != player.y)) {
+        enemy[i].onScreen = false;
+        projectile.x = player.x;
+        projectile.y = player.y;
+        score += 1;
+        printf("~~~~~~Your score is %d! Keep playing!~~~~~~~\n", score);
+        return true;
+    }
+    return false;
+}
+
+bool Tema1::checkProjectileObstacleCollision(int i) { //TODO problema!
+    if (!enemy[i].onScreen)
+        return false;
+    float a = 0.5f;
+    float b = 0.5f;
+
+    float x = (projectile.x + 0.03f * cos(projectile.angle)) - obstacle_struct[i].x + 2.0f;
+    float y = (projectile.y + 0.06f * sin(projectile.angle)) - obstacle_struct[i].y + 2.0f;
+
+    if (pow(x / a, 2) + pow(y / b, 2) <= 1 && (projectile.x != player.x || projectile.y != player.y)) {
+        projectile.x = player.x;
+        projectile.y = player.y;
+        return true;
+    }
+    return false;
+}
+
+bool Tema1::checkPlayerObstacleCollision(int i) { //TODO problema!
+    float a = 0.5f;
+    float b = 0.5f;
+
+    float x = (player.x + 2.0f) - obstacle_struct[i].x;// -obstacle_struct[i].scaleX;
+    float y = (player.y + 2.0f) - obstacle_struct[i].y;// -obstacle_struct[i].scaleY;
+
+    //printf("%f x %f y %f a %f b \n", x, y, a, b);
+    // printf("%f\n", pow(x / a, 2) + pow(y / b, 2));
+    if (pow(x / a, 2) + pow(y / b, 2) <= 1) {
+        return true;
+    }
+    return false;
+}
 
 // 2D visualization matrix
 glm::mat3 Tema1::VisualizationTransf2D(const LogicSpace& logicSpace, const ViewportSpace& viewSpace)
@@ -177,7 +230,10 @@ void Tema1::FrameStart()
 }
 
 bool Tema1::projectileOutOfBounds() {
-    return (projectile.x > 2 || projectile.y < -2 || projectile.y > 2 || projectile.x < -2);
+    return (projectile.x > 0.75 + player.x || projectile.y < -0.75 + player.y ||
+        projectile.y > 0.75 + player.y || projectile.x < -0.75 + player.x   // distanta de propagare 
+        || projectile.x == 1.9 || projectile.x == -1.9 || projectile.y == -1.9   // sa nu depaseasca harta
+        || projectile.y == 1.9);
 }
 
 bool Tema1::positionOutOfBonds(float x, float y) {
@@ -223,6 +279,16 @@ void Tema1::Update(float deltaTimeSeconds)
             projectile.x += projectile.power * deltaTimeSeconds * 2.f * cos(projectile.angle);
             projectile.y += projectile.power * deltaTimeSeconds * 2.f * sin(projectile.angle);
         }
+
+        // Has the arrow collided with a balloon?
+        for (int i = 0; i < numberOfEnemies; ++i) {
+            checkProjectileEnemyCollision(i);
+        }
+
+       /* for (int i = 0; i < 8; i++) {
+            checkProjectileObstacleCollision(i);
+        }*/
+
         if (projectileOutOfBounds())
             ResetProjectile();
     }
@@ -231,27 +297,30 @@ void Tema1::Update(float deltaTimeSeconds)
     // Enemy Movement
     {  
         for (int i = 0; i < numberOfEnemies; ++i) {
-            if (player.y + 2.0f > enemy[i].y) {
-                do { 
-                    enemy[i].y += deltaTimeSeconds * ( i * 0.05f + 0.2f);
-                } while (enemy[i].y + enemy[i].diffY - 2.0f == player.y + 2.0f);
-            }
-            if(player.y + 2.0f < enemy[i].y) {
-                do {
-                    enemy[i].y -= deltaTimeSeconds * (i * 0.05f + 0.2f);
-                } while (enemy[i].y + enemy[i].diffY - 2.0f == player.y + 2.0f);
-            }
+            if (enemy[i].onScreen) {
+                if (player.y + 2.0f > enemy[i].y) {  // todo de pus conditia sa nu depaseasca ecranul
+                    do { 
+                        enemy[i].y += deltaTimeSeconds * ( i * 0.05f + 0.3f);
+                    } while (enemy[i].y + enemy[i].diffY - 2.0f == player.y + 2.0f);
+                }
+                if(player.y + 2.0f < enemy[i].y) {
+                    do {
+                        enemy[i].y -= deltaTimeSeconds * (i * 0.05f + 0.3f);
+                    } while (enemy[i].y + enemy[i].diffY - 2.0f == player.y + 2.0f);
+                }
 
-            if (player.x + 2.0f > enemy[i].x) {
-                do {
-                    enemy[i].x += deltaTimeSeconds * (i * 0.05f + 0.2f);
-                } while (enemy[i].x + enemy[i].diffX - 2.0f == player.y + 2.0f);
+                if (player.x + 2.0f > enemy[i].x) {
+                    do {
+                        enemy[i].x += deltaTimeSeconds * (i * 0.05f + 0.3f);
+                    } while (enemy[i].x + enemy[i].diffX - 2.0f == player.y + 2.0f);
+                }
+                if(player.x + 2.0f < enemy[i].x) {
+                    do { // TODO nu se duce bine spre stanga
+                        enemy[i].x -= deltaTimeSeconds * (i * 0.05f + 0.3f);
+                    } while (enemy[i].x + enemy[i].diffX - 2.0f == player.x + 2.0f);
+                }
             }
-            if(player.x + 2.0f < enemy[i].x) {
-                do { // TODO nu se duce bine spre stanga
-                    enemy[i].x -= deltaTimeSeconds * (i * 0.05f + 0.2f);
-                } while (enemy[i].x + enemy[i].diffX - 2.0f == player.x + 2.0f);
-            }
+            
         }
     }
     //printf("en.y %f en.x %f plx %f ply %f \n", enemy[0].y, enemy[0].x, player.x, player.y);
@@ -297,39 +366,74 @@ void Tema1::DrawScene(glm::mat3 visMatrix)
     // Enemy Render
     {
         for (int i = 0; i < numberOfEnemies; ++i) {
-            modelMatrix = visMatrix_inside * transform2D::Translate(enemy[i].x, enemy[i].y) * transform2D::Scale(0.3f, 0.3f);
-            RenderMesh2D(meshes["enemy" + to_string(i)], shaders["VertexColor"], modelMatrix);
-
+            if (enemy[i].onScreen) {
+                modelMatrix = visMatrix_inside * transform2D::Translate(enemy[i].x, enemy[i].y) * transform2D::Scale(0.3f, 0.3f);
+                RenderMesh2D(meshes["enemy" + to_string(i)], shaders["VertexColor"], modelMatrix);
+            }            
         }
     }
+    obstacle_t aux_obstacle;
 
-    modelMatrix = visMatrix_outside * transform2D::Translate(obstacle.x + 0.25f, obstacle.y + 0.4f) * transform2D::Scale( 0.5f, 1.3f);
-    RenderMesh2D(meshes["obstacle"], shaders["VertexColor"], modelMatrix);
-    
-    modelMatrix = visMatrix_outside * transform2D::Translate(obstacle.x + 0.5f, obstacle.y + 2.5f) * transform2D::Scale(0.8f, 0.5f);
-    RenderMesh2D(meshes["obstacle"], shaders["VertexColor"], modelMatrix);
 
-    modelMatrix = visMatrix_outside * transform2D::Translate(obstacle.x + 0.5f, obstacle.y + 2.5f) * transform2D::Scale(0.8f, 0.5f);
-    RenderMesh2D(meshes["obstacle"], shaders["VertexColor"], modelMatrix);
-    
-    modelMatrix = visMatrix_outside * transform2D::Translate(obstacle.x + 0.8f, obstacle.y + 1.f) * transform2D::Scale(0.6f, 0.6f);
-    RenderMesh2D(meshes["obstacle"], shaders["VertexColor"], modelMatrix);
-    
-    modelMatrix = visMatrix_outside * transform2D::Translate(obstacle.x + 1.3f, obstacle.y + 2.4f) * transform2D::Scale(0.6f, 1.5f);
-    RenderMesh2D(meshes["obstacle"], shaders["VertexColor"], modelMatrix);
+    aux_obstacle.x = 0.25f;
+    aux_obstacle.y = 0.4f;
+    aux_obstacle.scaleX = 0.5f;
+    aux_obstacle.scaleY = 1.3f;
+    obstacle_struct.push_back(aux_obstacle);
 
-    modelMatrix = visMatrix_outside * transform2D::Translate(obstacle.x + 2.5f, obstacle.y + 3.f) * transform2D::Scale(0.5f, 0.8f);
-    RenderMesh2D(meshes["obstacle"], shaders["VertexColor"], modelMatrix);
+    aux_obstacle.x = 0.5f;
+    aux_obstacle.y = 2.5f;
+    aux_obstacle.scaleX = 0.8f;
+    aux_obstacle.scaleY = 0.5f;    
+    obstacle_struct.push_back(aux_obstacle);
 
-    modelMatrix = visMatrix_outside * transform2D::Translate(obstacle.x + 2.2f, obstacle.y + 1.4f) * transform2D::Scale(0.9f, 0.9f);
-    RenderMesh2D(meshes["obstacle"], shaders["VertexColor"], modelMatrix);
-    
-    modelMatrix = visMatrix_outside * transform2D::Translate(obstacle.x + 3.3f, obstacle.y + 0.7f) * transform2D::Scale(0.5f, 1.4f);
-    RenderMesh2D(meshes["obstacle"], shaders["VertexColor"], modelMatrix);
+    aux_obstacle.x = 0.5f;
+    aux_obstacle.y = 3.3f;
+    aux_obstacle.scaleX = 0.8f;
+    aux_obstacle.scaleY = 0.5f;
+    obstacle_struct.push_back(aux_obstacle);
 
-    modelMatrix = visMatrix_outside * transform2D::Translate(obstacle.x + 3.3f, obstacle.y + 2.7f) * transform2D::Scale(0.5f, 1.4f);
-    RenderMesh2D(meshes["obstacle"], shaders["VertexColor"], modelMatrix);   
-    
+    aux_obstacle.x = 0.8f;
+    aux_obstacle.y = 1.f;
+    aux_obstacle.scaleX = 0.6f;
+    aux_obstacle.scaleY = 0.6f;
+    obstacle_struct.push_back(aux_obstacle);
+
+    aux_obstacle.x = 1.3f;
+    aux_obstacle.y = 2.4f;
+    aux_obstacle.scaleX = 0.6f;
+    aux_obstacle.scaleY = 1.5f;
+    obstacle_struct.push_back(aux_obstacle);
+
+    aux_obstacle.x = 2.5f;
+    aux_obstacle.y = 3.f;
+    aux_obstacle.scaleX = 0.5f;
+    aux_obstacle.scaleY = 0.8f;
+    obstacle_struct.push_back(aux_obstacle);
+
+    aux_obstacle.x = 2.2f;
+    aux_obstacle.y = 1.4f;
+    aux_obstacle.scaleX = 0.9f;
+    aux_obstacle.scaleY = 0.9f;
+    obstacle_struct.push_back(aux_obstacle);
+
+    aux_obstacle.x = 3.3f;
+    aux_obstacle.y = 0.7f;
+    aux_obstacle.scaleX = 0.5f;
+    aux_obstacle.scaleY = 1.4f;
+    obstacle_struct.push_back(aux_obstacle);
+
+    obstacle.x = 3.3f;
+    obstacle.y = 2.7f;
+    obstacle.scaleX = 0.5f;
+    obstacle.scaleY = 1.4f;
+    obstacle_struct.push_back(aux_obstacle);
+
+    for (int i = 0; i < obstacle_struct.size(); i++) {
+        modelMatrix = visMatrix_outside * transform2D::Translate(obstacle_struct[i].x, obstacle_struct[i].y) 
+            * transform2D::Scale(obstacle_struct[i].scaleX, obstacle_struct[i].scaleY);
+        RenderMesh2D(meshes["obstacle"], shaders["VertexColor"], modelMatrix);
+    }     
 }
 
 
@@ -343,39 +447,42 @@ void Tema1::OnInputUpdate(float deltaTime, int mods)
     // TODO(student): Move the logic window with W, A, S, D (up, left, down, right)
 
     glm::ivec2 resolution = window->GetResolution();
-    if (window->KeyHold(GLFW_KEY_W)) {
-        if (player.y < 1.9f) { 
-            player.y += deltaTime;
-            if (!projectile.isMoving)
-                projectile.y = player.y;
+    for (int i = 0; i < obstacle_struct.size(); i++) {
+        if (!checkPlayerObstacleCollision(i) && window->KeyHold(GLFW_KEY_W)) {
+            if (player.y < 1.9f) {
+                player.y += deltaTime / obstacle_struct.size();
+                if (!projectile.isMoving)
+                    projectile.y = player.y;
 
+            }
+        }
+        if (!checkPlayerObstacleCollision(i) && window->KeyHold(GLFW_KEY_A)) {
+            if (player.x > -1.9f) {
+                player.x -= deltaTime / obstacle_struct.size();
+                if (!projectile.isMoving)
+                    projectile.x = player.x;
+
+            }
+        }
+        if (!checkPlayerObstacleCollision(i) && window->KeyHold(GLFW_KEY_S)) {
+            if (player.y > -1.9f) {
+                player.y -= deltaTime / obstacle_struct.size();
+                if (!projectile.isMoving)
+                    projectile.y = player.y;
+
+            }
+        }
+        if (!checkPlayerObstacleCollision(i) && window->KeyHold(GLFW_KEY_D)) {
+
+            if (player.x < 1.9f) {
+                player.x += deltaTime / obstacle_struct.size();
+                if (!projectile.isMoving)
+                    projectile.x = player.x;
+
+            }
         }
     }
-    if (window->KeyHold(GLFW_KEY_A)) {
-        if (player.x > -1.9f) {
-            player.x -= deltaTime;
-            if (!projectile.isMoving)
-                projectile.x = player.x;
-
-        }
-    }
-    if (window->KeyHold(GLFW_KEY_S)) {
-        if (player.y > -1.9f) {
-            player.y -= deltaTime;
-            if (!projectile.isMoving)
-                projectile.y = player.y;
-
-        }
-    }
-    if (window->KeyHold(GLFW_KEY_D)) {
-
-        if (player.x < 1.9f){ 
-            player.x += deltaTime;
-            if (!projectile.isMoving)
-                projectile.x = player.x;
-
-        }
-    }
+    
     //// TODO(student): Zoom in and zoom out logic window with Z and X
     //if (window->KeyHold(GLFW_KEY_Z)) {
     //    logicSpace.height += deltaTime;
