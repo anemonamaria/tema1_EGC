@@ -32,14 +32,19 @@ void Tema1::Init()
 {
     glm::ivec2 resolution = window->GetResolution();
 
-    player.lives = 1.0f;
+    player.lives = lives = 1.0f;
+
     player.angle = projectile.angle = 0;
     player.x = projectile.x =  0;
     player.y = projectile.y = 0;
     projectile.length = 10;
-    projectile.isCharging = projectile.isMoving = false;
+    projectile.isMoving = false;
+    projectile.sec = 0;
     obstacle.x = obstacle.y = 0;
     score = 0;
+    maxScore = 10;
+    enemy_timer = 0;
+    game = 1;
     
 
     auto camera = GetSceneCamera();
@@ -94,14 +99,14 @@ void Tema1::Init()
     
 
     {
-        numberOfEnemies = 5;
-        Mesh* enemy_new;
+        numberOfEnemies = 20;
+        //Mesh* enemy_new;
         for (int i = 0; i < numberOfEnemies; ++i) {
             enemy_aux.width = 0.3f;
             enemy_aux.height = 0.3f;
-            srand(time(NULL));
-            enemy_aux.x = i * rand() % 4 * 0.1f / 5;
-            enemy_aux.y = rand() % 4 * i  * 0.1f / 5;
+            enemy_aux.x = ((i + 1) * rand()) % 2; 
+            enemy_aux.y = ((i + 1) * rand()) % 2;
+            
             enemy_aux.diffX = 4.0f - enemy_aux.x;
             enemy_aux.diffY = 4.0f - enemy_aux.y;
 
@@ -110,11 +115,16 @@ void Tema1::Init()
             enemy_aux.scale = 1;
             enemy.push_back(enemy_aux);
 
-            enemy_new = object2D::CreateEnemy("enemy" + to_string(i), glm::vec3(enemy_aux.x, enemy_aux.y, 0), enemy_aux.color, glm::vec3(0,0,0));
-            AddMeshToList(enemy_new);
+            //enemy_new = object2D::CreateEnemy("enemy" + to_string(i), glm::vec3(enemy_aux.x, enemy_aux.y, 0), enemy_aux.color, glm::vec3(0,0,0));
+            //AddMeshToList(enemy_new);
         }
-
     }
+    Mesh* enemy_new;
+    enemy_new = object2D::CreateEnemy("enemy", glm::vec3(0, 0, 0), enemy_aux.color, glm::vec3(0, 0, 0));
+    AddMeshToList(enemy_new);
+    
+    printf("HELLO! GOOD LUCK PLAYING SURVIVAL SHOOTER - MICKEY MOUSE EDITION!\n\n");
+    printf("Maximum score is %d and you start at %d score. You have %f lives, don't lose them!\n", maxScore, score, lives);
 }
 
 bool Tema1::checkProjectileEnemyCollision(int i) {
@@ -130,6 +140,7 @@ bool Tema1::checkProjectileEnemyCollision(int i) {
         enemy[i].onScreen = false;
         projectile.x = player.x;
         projectile.y = player.y;
+        projectile.isMoving = false;
         score += 1;
         printf("~~~~~~Your score is %d! Keep playing!~~~~~~~\n", score);
         return true;
@@ -300,32 +311,43 @@ void Tema1::Update(float deltaTimeSeconds)
             if (enemy[i].onScreen) {
                 if (player.y + 2.0f > enemy[i].y) {  // todo de pus conditia sa nu depaseasca ecranul
                     do { 
-                        enemy[i].y += deltaTimeSeconds * ( i * 0.05f + 0.3f);
+                        enemy[i].y += deltaTimeSeconds * (((i / 10 + 1) * rand()) % 4) / 5;
                     } while (enemy[i].y + enemy[i].diffY - 2.0f == player.y + 2.0f);
                 }
                 if(player.y + 2.0f < enemy[i].y) {
                     do {
-                        enemy[i].y -= deltaTimeSeconds * (i * 0.05f + 0.3f);
-                    } while (enemy[i].y + enemy[i].diffY - 2.0f == player.y + 2.0f);
+                        enemy[i].y -= deltaTimeSeconds * (((i / 10 + 1) * rand()) % 4) / 5;
+                    } while (enemy[i].y + enemy[i].diffY - 2.0f == player.y + 2.0f);                   
                 }
 
                 if (player.x + 2.0f > enemy[i].x) {
                     do {
-                        enemy[i].x += deltaTimeSeconds * (i * 0.05f + 0.3f);
-                    } while (enemy[i].x + enemy[i].diffX - 2.0f == player.y + 2.0f);
+                        enemy[i].x += deltaTimeSeconds * (((i / 10 + 1) * rand()) % 4) / 5;
+                    } while (enemy[i].x + enemy[i].diffX - 2.0f == player.y + 2.0f);                  
                 }
                 if(player.x + 2.0f < enemy[i].x) {
                     do { // TODO nu se duce bine spre stanga
-                        enemy[i].x -= deltaTimeSeconds * (i * 0.05f + 0.3f);
-                    } while (enemy[i].x + enemy[i].diffX - 2.0f == player.x + 2.0f);
+                        enemy[i].x -= deltaTimeSeconds * (((i / 10 + 1) * rand()) % 4) / 5;
+                    } while (enemy[i].x + enemy[i].diffX - 2.0f == player.x + 2.0f);                    
+                }
+
+                if (pow(player.x + 2.5f - enemy[i].x, 2) + pow(player.y + 2.5f - enemy[i].x, 2) <= 1 
+                    && enemy[i].onScreen == true) {
+                    enemy[i].onScreen = false;
+                    player.lives -= 0.1f;
+                    if (player.lives <= 0) {
+                        for (int j = 0; j < numberOfEnemies; j++) {
+                            enemy[j].onScreen = false;
+                            game = 0;
+                        }
+                    } else
+                        printf("You have %f lives left!\n", player.lives);
                 }
             }
             
         }
     }
-    //printf("en.y %f en.x %f plx %f ply %f \n", enemy[0].y, enemy[0].x, player.x, player.y);
-
-
+    
     DrawScene(visMatrix_inside);
 }
 
@@ -365,11 +387,16 @@ void Tema1::DrawScene(glm::mat3 visMatrix)
 
     // Enemy Render
     {
+        float enemy_clock = std::clock() / CLOCKS_PER_SEC;
         for (int i = 0; i < numberOfEnemies; ++i) {
-            if (enemy[i].onScreen) {
+        //int i = 0;
+        //while(enemy_clock - enemy_timer > 1){
+            if (enemy[i].onScreen == true) { // && enemy_clock - enemy_timer > 1) {
                 modelMatrix = visMatrix_inside * transform2D::Translate(enemy[i].x, enemy[i].y) * transform2D::Scale(0.3f, 0.3f);
-                RenderMesh2D(meshes["enemy" + to_string(i)], shaders["VertexColor"], modelMatrix);
-            }            
+                RenderMesh2D(meshes["enemy"], shaders["VertexColor"], modelMatrix);
+                //i++;
+                //enemy_timer = enemy_clock;
+            }
         }
     }
     obstacle_t aux_obstacle;
@@ -434,6 +461,11 @@ void Tema1::DrawScene(glm::mat3 visMatrix)
             * transform2D::Scale(obstacle_struct[i].scaleX, obstacle_struct[i].scaleY);
         RenderMesh2D(meshes["obstacle"], shaders["VertexColor"], modelMatrix);
     }     
+
+    if (game == 0) {
+        printf("You lost  :(  Please exit the game!\n"); 
+        Exit();
+    }
 }
 
 
@@ -497,17 +529,11 @@ void Tema1::OnInputUpdate(float deltaTime, int mods)
     //    logicSpace.x -= deltaTime / 2;
     //    logicSpace.y -= deltaTime / 2;
     //}
-
-    if (!projectile.isMoving && window->MouseHold(GLFW_MOUSE_BUTTON_LEFT)) {  
+    float mytime = std::clock() / CLOCKS_PER_SEC;
+    if (!projectile.isMoving && window->MouseHold(GLFW_MOUSE_BUTTON_LEFT) && mytime - projectile.sec > 1) {  
         projectile.isMoving = true;
+        projectile.sec = mytime;
         projectile.power = 1.1;
-    }
-    else if (!window->MouseHold(GLFW_MOUSE_BUTTON_LEFT)) {
-        if (projectile.isCharging) { // move the arrow
-            projectile.isCharging = false;
-            projectile.isMoving = true;
-            projectile.power = 1.1;
-        }
     }
 }
 
@@ -555,8 +581,6 @@ void Tema1::setPlayerAngle() {
 void Tema1::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
 {
     // Add mouse move event
-    glm::ivec2 resolution = window->GetResolution();
-    // add mouse move event
     cursorX = mouseX - deltaX;
     cursorY = mouseY - deltaY;
     setPlayerAngle();

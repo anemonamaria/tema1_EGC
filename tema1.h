@@ -92,7 +92,8 @@ namespace m1
 
         struct projectile_t {
             float length, angle, power, x, y;
-            bool isCharging, isMoving;
+            bool isMoving;
+            float sec;
         } projectile;
 
         struct obstacle_t {
@@ -113,7 +114,11 @@ namespace m1
         float l;
         int numberOfEnemies, numberOfEnemies_current;
         int numberOfObstacles;
-        int score;
+        int score, maxScore;
+        float lives;
+        float enemy_timer;
+        int game;
+
     };
 }   // namespace m1
 
