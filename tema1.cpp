@@ -49,15 +49,15 @@ void Tema1::Init()
 
     auto camera = GetSceneCamera();
     camera->SetOrthographic(0, (float)resolution.x, 0, (float)resolution.y, 0.01f, 400);
-    camera->SetPosition(glm::vec3(0, 0, 50));
+    camera->SetPosition(glm::vec3((player.x + 2.0f) * resolution.x / 4 - resolution.x / 2, (player.y + 2.0f) * resolution.y / 4 - resolution.y / 2, 50));
     camera->SetRotation(glm::vec3(0, 0, 0));
     camera->Update();
     GetCameraInput()->SetActive(false);
 
-    logicSpace.x = 0;       // logic x
-    logicSpace.y = 0;       // logic y
-    logicSpace.width = 4;   // logic width
-    logicSpace.height = 4;  // logic height
+    logicSpace.x = 1;       // logic x
+    logicSpace.y = 1;       // logic y
+    logicSpace.width = 2;   // logic width
+    logicSpace.height = 2;  // logic height
 
     glm::vec3 corner = glm::vec3(0.001, 0.001, 0);
     length = 0.99f;
@@ -67,10 +67,10 @@ void Tema1::Init()
     gluOrtho2D(player.x - 100 / 2.0, player.x + 100 / 2.0, player.y - 100 / 2.0, player.y + 100 / 2.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();*/
-    Mesh* healthBar = object2D::CreateSquare1("healthBar", glm::vec3(3.25, 3.8, 0), 0.7f, 0.10f, glm::vec3(0.850, 0.792, 0.701), true);
+    Mesh* healthBar = object2D::CreateSquare1("healthBar", glm::vec3(0, 0, 0), 0.7f, 0.10f, glm::vec3(0.850, 0.792, 0.701), true);
     AddMeshToList(healthBar);
 
-    Mesh* healthBar_wf = object2D::CreateSquare1("healthBar_wf", glm::vec3(3.25, 3.8, 0), 0.7f, 0.10f, glm::vec3(0.850, 0.792, 0.710), false);
+    Mesh* healthBar_wf = object2D::CreateSquare1("healthBar_wf", glm::vec3(0, 0, 0), 0.7f, 0.10f, glm::vec3(0.850, 0.792, 0.710), false);
     AddMeshToList(healthBar_wf);
 
     numberOfObstacles = 9;
@@ -100,7 +100,7 @@ void Tema1::Init()
 
     {
         numberOfEnemies = 20;
-        //Mesh* enemy_new;
+        
         for (int i = 0; i < numberOfEnemies; ++i) {
             enemy_aux.width = 0.3f;
             enemy_aux.height = 0.3f;
@@ -115,8 +115,6 @@ void Tema1::Init()
             enemy_aux.scale = 1;
             enemy.push_back(enemy_aux);
 
-            //enemy_new = object2D::CreateEnemy("enemy" + to_string(i), glm::vec3(enemy_aux.x, enemy_aux.y, 0), enemy_aux.color, glm::vec3(0,0,0));
-            //AddMeshToList(enemy_new);
         }
     }
     Mesh* enemy_new;
@@ -142,15 +140,18 @@ bool Tema1::checkProjectileEnemyCollision(int i) {
         projectile.y = player.y;
         projectile.isMoving = false;
         score += 1;
-        printf("~~~~~~Your score is %d! Keep playing!~~~~~~~\n", score);
+        if (score == maxScore) {
+            printf("Congratulations! you are the winner! :)\n");
+            Exit();
+        } else 
+            printf("~~~~~~Your score is %d! Keep playing!~~~~~~~\n", score);
         return true;
     }
     return false;
 }
 
-bool Tema1::checkProjectileObstacleCollision(int i) { //TODO problema!
-    if (!enemy[i].onScreen)
-        return false;
+bool Tema1::checkProjectileObstacleCollision(int i) { 
+    
     float a = 0.5f;
     float b = 0.5f;
 
@@ -160,6 +161,7 @@ bool Tema1::checkProjectileObstacleCollision(int i) { //TODO problema!
     if (pow(x / a, 2) + pow(y / b, 2) <= 1 && (projectile.x != player.x || projectile.y != player.y)) {
         projectile.x = player.x;
         projectile.y = player.y;
+        projectile.isMoving = false;
         return true;
     }
     return false;
@@ -172,8 +174,6 @@ bool Tema1::checkPlayerObstacleCollision(int i) { //TODO problema!
     float x = (player.x + 2.0f) - obstacle_struct[i].x;// -obstacle_struct[i].scaleX;
     float y = (player.y + 2.0f) - obstacle_struct[i].y;// -obstacle_struct[i].scaleY;
 
-    //printf("%f x %f y %f a %f b \n", x, y, a, b);
-    // printf("%f\n", pow(x / a, 2) + pow(y / b, 2));
     if (pow(x / a, 2) + pow(y / b, 2) <= 1) {
         return true;
     }
@@ -261,6 +261,8 @@ void Tema1::ResetProjectile() {
 void Tema1::Update(float deltaTimeSeconds)
 {
     glm::ivec2 resolution = window->GetResolution();
+    auto camera = GetSceneCamera();
+    camera->SetPosition(glm::vec3((player.x + 2.0f) * resolution.x / 4 - resolution.x / 2 , (player.y + 2.0f) * resolution.y / 4 - resolution.y / 2, 50));
 
     // Sets the screen area where to draw
     viewSpace = ViewportSpace(0, 0, resolution.x, resolution.y);
@@ -278,10 +280,6 @@ void Tema1::Update(float deltaTimeSeconds)
 
     // Compute the 2D visualization matrix
     visMatrix_inside = glm::mat3(1);
-    /*logicSpace.height = player.y + 500;
-    logicSpace.width = player.x + 500;
-    logicSpace.x = player.x - 500;
-    logicSpace.y = player.y - 500;*/
     visMatrix_inside *= VisualizationTransf2D(logicSpace, viewSpace);
     
     //projectile movement
@@ -291,14 +289,13 @@ void Tema1::Update(float deltaTimeSeconds)
             projectile.y += projectile.power * deltaTimeSeconds * 2.f * sin(projectile.angle);
         }
 
-        // Has the arrow collided with a balloon?
         for (int i = 0; i < numberOfEnemies; ++i) {
             checkProjectileEnemyCollision(i);
         }
 
-       /* for (int i = 0; i < 8; i++) {
+       for (int i = 0; i < 8; i++) {
             checkProjectileObstacleCollision(i);
-        }*/
+        }
 
         if (projectileOutOfBounds())
             ResetProjectile();
@@ -330,9 +327,9 @@ void Tema1::Update(float deltaTimeSeconds)
                         enemy[i].x -= deltaTimeSeconds * (((i / 10 + 1) * rand()) % 4) / 5;
                     } while (enemy[i].x + enemy[i].diffX - 2.0f == player.x + 2.0f);                    
                 }
-
-                if (pow(player.x + 2.5f - enemy[i].x, 2) + pow(player.y + 2.5f - enemy[i].x, 2) <= 1 
-                    && enemy[i].onScreen == true) {
+                
+                if (pow(player.x + 2.72f - enemy[i].x, 2) + pow(player.y + 2.72f - enemy[i].x, 2) <= 1 
+                    && enemy[i].onScreen == true) {  // todo de aici se poate alege mai ok unde dispare inamicul
                     enemy[i].onScreen = false;
                     player.lives -= 0.1f;
                     if (player.lives <= 0) {
@@ -359,10 +356,10 @@ void Tema1::FrameEnd()
 
 void Tema1::DrawScene(glm::mat3 visMatrix)
 {
-    modelMatrix = visMatrix_inside * transform2D::Translate(0, 0) * transform2D::Scale(1.0f, 1.0f);
+    modelMatrix = visMatrix_inside * transform2D::Translate(3.2, 3.8) * transform2D::Scale(1.0f, 1.0f);
     RenderMesh2D(meshes["healthBar_wf"], shaders["VertexColor"], modelMatrix);
 
-    modelMatrix = visMatrix_inside * transform2D::Translate(0, 0) * transform2D::Scale(player.lives, 1.0f); // TODO nu se scaleaza bine
+    modelMatrix = visMatrix_inside * transform2D::Translate(3.2, 3.8) * transform2D::Scale(player.lives, 1.0f); 
     RenderMesh2D(meshes["healthBar"], shaders["VertexColor"], modelMatrix);
 
     modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
@@ -390,7 +387,7 @@ void Tema1::DrawScene(glm::mat3 visMatrix)
         float enemy_clock = std::clock() / CLOCKS_PER_SEC;
         for (int i = 0; i < numberOfEnemies; ++i) {
         //int i = 0;
-        //while(enemy_clock - enemy_timer > 1){
+        //while( 1) { //enemy_clock - enemy_timer > 1){
             if (enemy[i].onScreen == true) { // && enemy_clock - enemy_timer > 1) {
                 modelMatrix = visMatrix_inside * transform2D::Translate(enemy[i].x, enemy[i].y) * transform2D::Scale(0.3f, 0.3f);
                 RenderMesh2D(meshes["enemy"], shaders["VertexColor"], modelMatrix);
@@ -529,7 +526,7 @@ void Tema1::OnInputUpdate(float deltaTime, int mods)
     //    logicSpace.x -= deltaTime / 2;
     //    logicSpace.y -= deltaTime / 2;
     //}
-    float mytime = std::clock() / CLOCKS_PER_SEC;
+    float mytime = std::clock() / CLOCKS_PER_SEC + 1;
     if (!projectile.isMoving && window->MouseHold(GLFW_MOUSE_BUTTON_LEFT) && mytime - projectile.sec > 1) {  
         projectile.isMoving = true;
         projectile.sec = mytime;
