@@ -54,10 +54,10 @@ void Tema1::Init()
     camera->Update();
     GetCameraInput()->SetActive(false);
 
-    logicSpace.x = 1;       // logic x
-    logicSpace.y = 1;       // logic y
-    logicSpace.width = 2;   // logic width
-    logicSpace.height = 2;  // logic height
+    logicSpace.x = 0;       // logic x
+    logicSpace.y = 0;       // logic y
+    logicSpace.width = 4;   // logic width
+    logicSpace.height = 4;  // logic height
 
     glm::vec3 corner = glm::vec3(0.001, 0.001, 0);
     length = 0.99f;
@@ -99,7 +99,7 @@ void Tema1::Init()
     
 
     {
-        numberOfEnemies = 20;
+        numberOfEnemies = 5;  // 20
         
         for (int i = 0; i < numberOfEnemies; ++i) {
             enemy_aux.width = 0.3f;
@@ -243,8 +243,8 @@ void Tema1::FrameStart()
 bool Tema1::projectileOutOfBounds() {
     return (projectile.x > 0.75 + player.x || projectile.y < -0.75 + player.y ||
         projectile.y > 0.75 + player.y || projectile.x < -0.75 + player.x   // distanta de propagare 
-        || projectile.x == 1.9 || projectile.x == -1.9 || projectile.y == -1.9   // sa nu depaseasca harta
-        || projectile.y == 1.9);
+        || projectile.x > 1.9 || projectile.x < -1.9 || projectile.y < -1.9   // sa nu depaseasca harta
+        || projectile.y > 1.9);
 }
 
 bool Tema1::positionOutOfBonds(float x, float y) {
@@ -328,8 +328,8 @@ void Tema1::Update(float deltaTimeSeconds)
                     } while (enemy[i].x + enemy[i].diffX - 2.0f == player.x + 2.0f);                    
                 }
                 
-                if (pow(player.x + 2.72f - enemy[i].x, 2) + pow(player.y + 2.72f - enemy[i].x, 2) <= 1 
-                    && enemy[i].onScreen == true) {  // todo de aici se poate alege mai ok unde dispare inamicul
+                if (pow(player.x + 2.7f - enemy[i].x, 2) + pow(player.y + 2.7f - enemy[i].x, 2) <= 1 
+                    && enemy[i].onScreen == true) {  
                     enemy[i].onScreen = false;
                     player.lives -= 0.1f;
                     if (player.lives <= 0) {
@@ -356,10 +356,10 @@ void Tema1::FrameEnd()
 
 void Tema1::DrawScene(glm::mat3 visMatrix)
 {
-    modelMatrix = visMatrix_inside * transform2D::Translate(3.2, 3.8) * transform2D::Scale(1.0f, 1.0f);
+    modelMatrix = visMatrix_inside * transform2D::Translate(player.x + 3.2, player.y + 3.8) * transform2D::Scale(1.0f, 1.0f);
     RenderMesh2D(meshes["healthBar_wf"], shaders["VertexColor"], modelMatrix);
 
-    modelMatrix = visMatrix_inside * transform2D::Translate(3.2, 3.8) * transform2D::Scale(player.lives, 1.0f); 
+    modelMatrix = visMatrix_inside * transform2D::Translate(player.x + 3.2, player.y + 3.8) * transform2D::Scale(player.lives, 1.0f); 
     RenderMesh2D(meshes["healthBar"], shaders["VertexColor"], modelMatrix);
 
     modelMatrix = visMatrix_outside * transform2D::Translate(0, 0);
@@ -470,6 +470,12 @@ void Tema1::DrawScene(glm::mat3 visMatrix)
  *  These are callback functions. To find more about callbacks and
  *  how they behave, see `input_controller.h`.
  */
+
+bool Tema1::checkObstacle(float x, float y) {
+    if ((x <= 0.71 && x >= 0.16) && (y <= -0.1 && -0.58))
+        return false;
+    return true;
+}
 
 void Tema1::OnInputUpdate(float deltaTime, int mods)
 {

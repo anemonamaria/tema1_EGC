@@ -67,6 +67,7 @@ namespace m1
         bool Tema1::projectileOutOfBounds();
         void Tema1::ResetProjectile();
         bool Tema1::positionOutOfBonds(float x, float y);
+        bool checkObstacle(float x, float y);
 
         // Sets the logic space and view space
         // logicSpace: { x, y, width, height }
