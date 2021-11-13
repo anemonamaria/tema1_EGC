@@ -3,16 +3,6 @@
 #include "components/simple_scene.h"
 #include <vector>
 
-/*
-    - de rezolvat TODO-URILE
-    - de facut coliziunile cu obstacolele
-    - de facut viewport-ul   -din logicspace
-    - de retinut scorul
-    - de facut inamicii sa vina din toate directiile
-    - de facut inamicii sa se genereze continu
-    - de facut inamicii sa se opreasca unde trebuie
-
-*/
 namespace m1
 {
     class Tema1 : public gfxc::SimpleScene
@@ -67,11 +57,8 @@ namespace m1
         bool Tema1::projectileOutOfBounds();
         void Tema1::ResetProjectile();
         bool Tema1::positionOutOfBonds(float x, float y);
-        bool checkObstacle(float x, float y);
 
-        // Sets the logic space and view space
-        // logicSpace: { x, y, width, height }
-        // viewSpace: { x, y, width, height }
+
         glm::mat3 VisualizationTransf2D(const LogicSpace& logicSpace, const ViewportSpace& viewSpace);
         glm::mat3 VisualizationTransf2DUnif(const LogicSpace& logicSpace, const ViewportSpace& viewSpace);
 
@@ -93,7 +80,7 @@ namespace m1
 
         struct projectile_t {
             float length, angle, power, x, y;
-            bool isMoving;
+            bool shot;
             float sec;
         } projectile;
 
@@ -121,5 +108,5 @@ namespace m1
         int game;
 
     };
-}   // namespace m1
+}   
 

@@ -62,7 +62,7 @@ Mesh* object2D::CreateEnemy(const std::string& name, glm::vec3 leftBottomCorner,
 		0, 6, 4,
 		0, 8, 6,
 		0, 11, 8,
-		0, 10, 11,  // TODO vezi astea aici ca nu deseneaza bine
+		0, 10, 11,  
 		2, 5, 3,
 		2, 4, 5,
 		6, 9, 7,
@@ -84,7 +84,7 @@ Mesh* object2D::CreateCircle(const std::string& name, glm::vec3 centre, float le
 		VertexFormat(centre + glm::vec3(0, 0, 0), color) // 0
 	};
 
-	for (int i = 0; i < range + 1; ++i) { // 1-91
+	for (int i = 0; i < range + 1; ++i) {
 		float angle = -M_PI / 2 + M_PI / 45 * i;
 		vertices.push_back(VertexFormat(centre + glm::vec3(a * cos(angle), a * sin(angle), 0), color));
 	}
