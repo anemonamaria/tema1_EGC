@@ -47,10 +47,10 @@ void Tema1::Init()
     camera->Update();
     GetCameraInput()->SetActive(false);
 
-    logicSpace.x = 0;       // logic x
-    logicSpace.y = 0;       // logic y
-    logicSpace.width = 4;   // logic width
-    logicSpace.height = 4;  // logic height
+    logicSpace.x = player.x  + 1.f;       // logic x
+    logicSpace.y = player.y + 1.f;       // logic y
+    logicSpace.width = 2;   // logic width
+    logicSpace.height = 2;  // logic height
 
     glm::vec3 corner = glm::vec3(0.001, 0.001, 0);
     length = 0.99f;
@@ -250,8 +250,7 @@ void Tema1::Update(float deltaTimeSeconds)
 {
     glm::ivec2 resolution = window->GetResolution();
     auto camera = GetSceneCamera();
-    camera->SetPosition(glm::vec3((player.x + 2.0f) * resolution.x / 4 - resolution.x / 2 ,
-            (player.y + 2.0f) * resolution.y / 4 - resolution.y / 2, 50));
+    camera->SetPosition(glm::vec3((player.x + 2.0f), (player.y + 2.0f), 50));
 
     // Sets the screen area where to draw
     viewSpace = ViewportSpace(0, 0, resolution.x, resolution.y);
@@ -281,9 +280,9 @@ void Tema1::Update(float deltaTimeSeconds)
             checkProjectileEnemyCollision(i);
         }
 
-       for (int i = 0; i < 8; i++) {
-            checkProjectileObstacleCollision(i);
-        }
+      // for (int i = 0; i < 8; i++) {
+        //    checkProjectileObstacleCollision(i);
+        //}
 
         if (projectileOutOfBounds())
             ResetProjectile();
@@ -458,12 +457,15 @@ void Tema1::DrawScene(glm::mat3 visMatrix)
 void Tema1::OnInputUpdate(float deltaTime, int mods)
 {
     glm::ivec2 resolution = window->GetResolution();
+
     for (int i = 0; i < obstacle_struct.size(); i++) {
         if (!checkPlayerObstacleCollision(i) && window->KeyHold(GLFW_KEY_W)) {
             if (player.y < 1.9f) {
                 player.y += deltaTime / obstacle_struct.size();
                 if (!projectile.shot)
                     projectile.y = player.y;
+               // logicSpace.x = player.x + 1.f;       // logic x
+                logicSpace.y = player.y + 1.f;       // logic y
 
             }
         }
@@ -472,6 +474,8 @@ void Tema1::OnInputUpdate(float deltaTime, int mods)
                 player.x -= deltaTime / obstacle_struct.size();
                 if (!projectile.shot)
                     projectile.x = player.x;
+                logicSpace.x = player.x + 1.f;       // logic x
+                //logicSpace.y = player.y + 1.f;       // logic y
 
             }
         }
@@ -480,6 +484,8 @@ void Tema1::OnInputUpdate(float deltaTime, int mods)
                 player.y -= deltaTime / obstacle_struct.size();
                 if (!projectile.shot)
                     projectile.y = player.y;
+                //logicSpace.x = player.x + 1.f;       // logic x
+                logicSpace.y = player.y + 1.f;       // logic y
 
             }
         }
@@ -489,6 +495,8 @@ void Tema1::OnInputUpdate(float deltaTime, int mods)
                 player.x += deltaTime / obstacle_struct.size();
                 if (!projectile.shot)
                     projectile.x = player.x;
+                logicSpace.x = player.x + 1.f;       // logic x
+                //logicSpace.y = player.y + 1.f;       // logic y
 
             }
         }
